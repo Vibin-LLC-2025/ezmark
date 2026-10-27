@@ -40,3 +40,7 @@ recommends.
 | `cargo install tauri-cli --version 2.12.4 --locked` | not run | 5 min 43 s |
 | Whole `test` job (clippy twice, tests, harness, screenshot; macOS also bundles and cold-opens) | 5 min 50 s | 9 min 12 s |
 | Whole `build` job | 3 min 41 s | 2 min 57 s |
+
+With warm caches ([run 40461627894](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/40461627894),
+same images, tauri-cli restored from the cache), the slowest job, macOS
+`test`, took 2 min 50 s, and the whole run about 3 minutes.

@@ -281,22 +281,13 @@ fn enforcement_fixture_is_blocked_by_the_enforced_csp() {
     let reports = result["page"]["cspReports"]
         .as_array()
         .expect("csp reports");
+    // Both WebView2 and WKWebView report the full blocked URL (CI, 2026-10-27).
     let report = reports
         .iter()
-        .find(|r| {
-            r["blockedURI"]
-                .as_str()
-                .is_some_and(|u| u.starts_with(&loopback.origin))
-        })
-        .unwrap_or_else(|| panic!("no CSP report for {blocked_url}: {result:#}"));
+        .find(|r| r["blockedURI"] == blocked_url.as_str())
+        .unwrap_or_else(|| panic!("no CSP report naming {blocked_url}: {result:#}"));
     assert_eq!(report["disposition"], "enforce", "{report:#}");
-    assert!(
-        report["effectiveDirective"]
-            .as_str()
-            .unwrap()
-            .starts_with("img-src"),
-        "{report:#}"
-    );
+    assert_eq!(report["effectiveDirective"], "img-src", "{report:#}");
     assert_eq!(
         loopback.outbound(),
         0,
