@@ -1,0 +1,32 @@
+[workspace]
+members = ["crates/mdcore", "crates/app"]
+# `cargo run` at the repo root must pick the viewer binary (plan section 6).
+default-members = ["crates/app"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Vibin-LLC-2025/ezmark"
+publish = false
+
+[workspace.dependencies]
+mdcore = { path = "crates/mdcore" }
+comrak = { version = "0.59.0", default-features = false }
+ammonia = "4.2.4"
+percent-encoding = "2.3.2"
+tauri = "2.12.5"
+tauri-build = "2.7.4"
+tauri-plugin-single-instance = "2.5.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dunce = "1.0.5"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
