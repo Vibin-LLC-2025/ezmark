@@ -1,0 +1,12 @@
+{
+  "name": "ezmark-contributor-tools",
+  "private": true,
+  "description": "Contributor-only tooling: type-checks ui/ JavaScript. Readers never need Node.",
+  "license": "MIT OR Apache-2.0",
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}
