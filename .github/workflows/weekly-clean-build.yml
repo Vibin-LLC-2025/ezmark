@@ -1,0 +1,35 @@
+name: Weekly clean build
+
+# Catches rot in the one-command promise: a clean checkout, no cache, the
+# README's build on both platforms, then the full test and harness suite.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clean-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - name: The README command's build, timed, with no cache
+        shell: bash
+        run: |
+          start=$(date +%s)
+          cargo build --release
+          end=$(date +%s)
+          echo "clean release build: $((end - start)) s on ${ImageOS:-unknown} ${ImageVersion:-unknown}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Unit tests and security harness
+        run: cargo test --workspace --features ezmark/test-harness
