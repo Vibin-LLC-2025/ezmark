@@ -1,0 +1,39 @@
+/* M0 baseline only. The typography spec (68ch measure, 17px, 1.6 line
+   height, GitHub heading scale) and the themes arrive in M2. */
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  padding: 32px;
+}
+
+#content {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+
+#content:focus {
+  outline: none;
+}
+
+#content img {
+  max-width: 100%;
+}
+
+#content pre {
+  overflow-x: auto;
+}
+
+.notice {
+  margin-top: 20vh;
+  text-align: center;
+}
+
+.notice.error p {
+  overflow-wrap: anywhere;
+}

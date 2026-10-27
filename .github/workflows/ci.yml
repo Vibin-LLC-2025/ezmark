@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    # The one deliberate floating label (plan section 12): nothing visual or
+    # platform-specific runs here, and Rust and TypeScript are pinned in-repo.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - name: rustfmt
+        run: cargo fmt --all --check
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # The app crate is linted on the Windows and macOS runners instead, where
+      # its platform-specific code compiles (CHANGELOG, 2026-10-27).
+      - name: clippy (mdcore)
+        run: cargo clippy -p mdcore --all-targets --locked -- -D warnings
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Type-check ui/ (pinned TypeScript)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run typecheck
+      - name: README link check
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --no-progress --max-retries 3 README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md docs/m0-evidence.md
+          fail: true
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Record runner image and toolchain
+        shell: bash
+        run: |
+          echo "runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}" | tee -a "$GITHUB_STEP_SUMMARY"
+          rustc -V | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: clippy (production features)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: clippy (test-harness features)
+        run: cargo clippy --workspace --all-targets --locked --features ezmark/test-harness -- -D warnings
+      - name: Unit tests and security harness
+        # --nocapture keeps the harness evidence (CSP reports, cold-open result) in the log.
+        run: cargo test --workspace --locked --features ezmark/test-harness -- --nocapture
+      - name: Positive control for the artifact check (harness markers present)
+        shell: bash
+        run: scripts/check-release-artifact.sh "target/debug/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}" present
+      - name: Real-app screenshot (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/screenshot-windows.ps1 -Binary target/debug/ezmark.exe -File docs/media/demo/demo.md -Out screenshot-windows.png
+      - name: Real-app screenshot (macOS)
+        if: runner.os == 'macOS'
+        run: scripts/screenshot-macos.sh target/debug/ezmark docs/media/demo/demo.md screenshot-macos.png
+      - name: Install the pinned tauri-cli (macOS)
+        if: runner.os == 'macOS'
+        run: cargo install tauri-cli --version 2.12.4 --locked
+      - name: Bundle the harness app (macOS)
+        if: runner.os == 'macOS'
+        run: cargo tauri build --debug --bundles app --features test-harness
+      - name: Cold open through Launch Services (macOS)
+        if: runner.os == 'macOS'
+        env:
+          EZMARK_HARNESS_APP: ${{ github.workspace }}/target/debug/bundle/macos/ezmark.app
+        run: cargo test -p ezmark --locked --features test-harness --test harness -- --ignored cold_open --nocapture
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: screenshots-${{ matrix.os }}
+          path: screenshot-*.png
+          if-no-files-found: warn
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # An explicit production feature set: a Cargo feature is not excluded
+      # from release profiles automatically (plan section 11).
+      - name: Release build (production features only)
+        run: cargo build --release --locked -p ezmark --no-default-features --features custom-protocol
+      - name: Production artifact contains no harness pieces
+        shell: bash
+        run: scripts/check-release-artifact.sh "target/release/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}" absent
+      - name: Record binary size
+        shell: bash
+        run: |
+          size=$(wc -c < "target/release/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}")
+          echo "release binary: ${size} bytes on ${ImageOS:-unknown} ${ImageVersion:-unknown}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ezmark-${{ matrix.os }}
+          path: target/release/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}
+          if-no-files-found: error
