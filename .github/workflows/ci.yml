@@ -42,7 +42,7 @@ jobs:
       - name: README link check
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: --no-progress --max-retries 3 README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md
+          args: --no-progress --max-retries 3 README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md docs/m0-evidence.md
           fail: true
 
   test:
@@ -66,7 +66,8 @@ jobs:
       - name: clippy (test-harness features)
         run: cargo clippy --workspace --all-targets --locked --features ezmark/test-harness -- -D warnings
       - name: Unit tests and security harness
-        run: cargo test --workspace --locked --features ezmark/test-harness
+        # --nocapture keeps the harness evidence (CSP reports, cold-open result) in the log.
+        run: cargo test --workspace --locked --features ezmark/test-harness -- --nocapture
       - name: Positive control for the artifact check (harness markers present)
         shell: bash
         run: scripts/check-release-artifact.sh "target/debug/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}" present
