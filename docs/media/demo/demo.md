@@ -26,7 +26,7 @@ fn main() {
 ```
 
 > [!NOTE]
-> GitHub alerts parse today; their styling arrives with the typography work.
+> In M0, GitHub alerts parse; their styling arrives with the typography work.
 
 <details><summary>Raw HTML survives sanitizing when it is safe</summary>
 

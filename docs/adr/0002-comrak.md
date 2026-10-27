@@ -27,7 +27,7 @@ through the ammonia sanitizer before it leaves `mdcore`.
   IDs, front matter, shortcodes, plus URL rewriter hooks and a highlighter
   adapter.
 - pulldown-cmark is about 1.9x faster in comrak's own benchmark and covers
-  most extensions now, but it does not aim at cmark-gfm parity, and parse time
+  most extensions as of 2026-10-26, but it does not aim at cmark-gfm parity, and parse time
   is not the bottleneck.
 - markdown-rs warns about very large and pathological inputs; cmark-gfm itself
   would add C FFI to the Windows and macOS builds.

@@ -118,7 +118,8 @@ and signed installers with auto-update.
 
 ## Why not MDHero or Tinta?
 
-Both are good, and if you want a viewer today, try them first. As of
+Both are good, and if you want a working viewer before ezmark reaches v1, try
+them first. As of
 2026-10-26:
 
 - [MDHero](https://github.com/vaibhav-kakde-in/mdhero) (MIT, Tauri) is the
