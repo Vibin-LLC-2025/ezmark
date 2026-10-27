@@ -13,6 +13,9 @@ file and read it. It does not edit, and it never will.
 
 ![ezmark M0 on Windows 11](docs/media/m0-windows.png)
 
+The same build on macOS: [screenshot](docs/media/m0-macos.png). What M0 has
+proven, and what is still open, is in [docs/m0-evidence.md](docs/m0-evidence.md).
+
 ## Why
 
 Developers read READMEs, specs, and AI-generated markdown locally all day. The
@@ -52,7 +55,8 @@ the file changes, or render differently from GitHub. ezmark aims to be:
 ### One command
 
 The first build compiles about 250 crates. It took 109 seconds on a 12-core
-desktop; expect several minutes on a laptop. Later builds take seconds.
+desktop and under 3 minutes on GitHub's Windows and macOS runners; expect
+several minutes on a laptop. Later builds take seconds.
 
 ```sh
 git clone https://github.com/Vibin-LLC-2025/ezmark.git

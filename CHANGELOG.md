@@ -43,7 +43,8 @@ Recorded as the plan requires, rather than absorbed silently.
   double-clicking in Finder. CI covers macOS on a `macos-15` runner and
   proves the cold open through `open -a`, which takes the same Launch
   Services path as Finder. The CI runner and the author's machine are proxies,
-  not substitutes.
+  not substitutes. Drag-drop onto the empty-state window is implemented but
+  not yet checked. The per-obligation status is in `docs/m0-evidence.md`.
 - **2026-10-27: clippy for the app crate runs on the Windows and macOS jobs,
   not the `ubuntu-latest` lint job.** The app crate's platform code only
   compiles, and so only lints, on its own OS; Linux would also need webkit2gtk

@@ -30,4 +30,13 @@ recommends.
 
 ### CI runners
 
-Filled in from the first green CI run.
+[Run 40460451943](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/40460451943),
+2026-10-27, the first run, so every cache was empty.
+
+| What | `windows-2025` (image `win25-vs2026 20261021.278.1`) | `macos-15` (image `macos15 20260907.0337.1`, Apple Silicon) |
+|---|---|---|
+| Release build, production features, no cache | 2 min 50 s | 2 min 18 s |
+| Release binary (unstripped) | 10,719,232 bytes | 12,083,648 bytes |
+| `cargo install tauri-cli --version 2.12.4 --locked` | not run | 5 min 43 s |
+| Whole `test` job (clippy twice, tests, harness, screenshot; macOS also bundles and cold-opens) | 5 min 50 s | 9 min 12 s |
+| Whole `build` job | 3 min 41 s | 2 min 57 s |
