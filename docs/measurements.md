@@ -44,3 +44,98 @@ recommends.
 With warm caches ([run 40461627894](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/40461627894),
 same images, tauri-cli restored from the cache), the slowest job, macOS
 `test`, took 2 min 50 s, and the whole run about 3 minutes.
+
+## After the audit, 2026-11-13
+
+Same author's machine as above. WebView2 runtime 157.0.4341.57.
+
+### Release binary
+
+| Profile | Clean build | `ezmark.exe` |
+|---|---|---|
+| Cargo defaults | 100 s | 10,766,336 bytes |
+| `strip = true` (chosen) | 97 s | 10,761,728 bytes |
+| `strip`, `lto = "thin"` | 89 s | 11,020,288 bytes |
+| `strip`, `lto = true`, `codegen-units = 1` | 167 s | 9,584,640 bytes |
+
+Builds ran one after another while other work used the machine, so read the
+times to within about 10%. Stripping changes almost nothing on Windows, where
+symbols already live in a separate file; it is on because it is free and
+matters on macOS. Full link-time optimisation saves 11% for a 67% longer first
+build, and the first build is what a reader waits through, so it is off.
+
+### Nesting depth and render time
+
+Release build, parse then sanitize, before the nesting guard existed:
+
+| Input | Size | Parse | Sanitize |
+|---|---|---|---|
+| 500 unclosed `<div>` | 3 KB | 0.2 ms | 1.6 ms |
+| 2,000 unclosed `<div>` | 12 KB | 0.1 ms | 23 ms |
+| 5,000 unclosed `<div>` | 30 KB | 0.4 ms | 127 ms |
+| 20,000 unclosed `<div>` | 120 KB | 14 ms | 2,768 ms |
+| 20,000 `>` on one line | 20 KB | 348 ms | 2,550 ms |
+| 20,000 unclosed `<b>` | 60 KB | 10 ms | 26 ms |
+| 50,000 sibling `<div>a</div>` | 650 KB | 4 ms | 113 ms |
+| Ordinary mixed markdown | 1 MB | | 190 ms in total |
+| Ordinary mixed markdown | 10 MB | | 1,960 ms in total |
+
+The cost follows depth, not size, and grows with its square. The guard sends
+anything deeper than 512 to a plain-text view.
+
+### What reaches the network
+
+Two kinds of measurement, answering different questions.
+
+**What a page can make the webview do.** The harness injects markup past the
+sanitizer and counts connections at a loopback listener
+(`crates/app/tests/harness.rs`). With the network lock switched off:
+
+| Injected | Reached the listener |
+|---|---|
+| 18 kinds of resource load, 8 kinds of script-driven request | Nothing. 27 enforced CSP reports |
+| `<link rel="preconnect">` | A TCP connection, no request. No CSP directive applies |
+| `<iframe src>` | A TCP connection, no request, although `frame-src` refused the load and reported it |
+| `<meta http-equiv="refresh">`, `location = ...` | The full `GET`, although the Rust guard denied the navigation and the page stayed |
+
+With the network lock on, as shipped: nothing reaches the listener in any of
+these. Before the right-click menu was suppressed on links, choosing "Save
+link as" in the production build opened two connections to a listener.
+
+**What the process tree does on its own.** `scripts/netwatch-windows.ps1`
+launches the production binary with a fresh webview profile and records every
+socket owned by `ezmark.exe` and the `msedgewebview2.exe` processes under it
+(sampled about every 1.3 ms, worst gap 33 ms), together with the webview's own
+network log, which has no gaps.
+
+| | Before the lock (commit `62d419d`) | With the lock |
+|---|---|---|
+| `ezmark.exe` | No socket in any run | No socket in any run |
+| Webview network stack | Two requests to `config.edge.skype.com` at start; a `wpad` proxy lookup; a component-update call to `edge.microsoft.com` after 60 s; three connection attempts each to `[::1]:80` and `127.0.0.1:80` | Nothing: no connection attempt, lookup, or URL, loopback included (30 s on the demo document, 90 s idle) |
+| Webview browser process, outside its network stack | Two connections to a Microsoft address on port 443, in 18 of 22 runs | The same two connections, in 1 of 2 runs |
+
+That last row is the part ezmark cannot switch off. On a machine signed in to
+Windows with a Microsoft account, the WebView2 runtime fetches that account's
+profile through Windows' own sign-in library, not through the webview's
+network stack, so neither the CSP nor the lock nor any browser argument tried
+(fifteen of them) reaches it. The destination is inferred from the address
+range and from the library's contents, not observed. It is unrelated to the
+document: it happens with no file open. It also means the runtime writes the
+account's name into the webview profile folder under
+`%LOCALAPPDATA%\io.github.vibin-llc-2025.ezmark`.
+
+What this cannot see: a connection from `ezmark.exe` shorter than the sampling
+gap, traffic made on the app's behalf by system services outside the process
+tree, anything on a timer longer than 90 seconds, and macOS entirely. An
+elevated packet capture would close the first three.
+
+### A short fuzz of the renderer
+
+Not the scheduled fuzzing the plan puts after M3: a one-off, 150 seconds on
+one core. The security fixtures, the demo document, and the README were
+mutated at random (tag fragments, quotes, entities, markers, deletions, and
+duplications spliced in) and each result rendered and checked. 565,968
+documents: no panic; no element outside the allowlist; no attribute outside
+it; every `src` an asset URL or a blocked marker; every `id` and `name`
+prefixed; every `href` a fragment, an allowed scheme, or a relative path;
+every `<input>` a disabled checkbox. The slowest render took 10.5 ms.

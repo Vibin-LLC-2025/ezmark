@@ -5,16 +5,17 @@ file and read it. It does not edit, and it never will.
 
 [![CI](https://github.com/Vibin-LLC-2025/ezmark/actions/workflows/ci.yml/badge.svg)](https://github.com/Vibin-LLC-2025/ezmark/actions/workflows/ci.yml)
 
-> **Status: milestone M0 (spike and skeleton).** The run story, the security
-> harness, and CI on both platforms work. Typography, themes, syntax
-> highlighting, live reload, and navigation arrive in M1 to M3, so this is not
-> a daily viewer yet. See the [plan](docs/CLONE-AND-RUN-PLAN.md) and the
+> **Status: milestone M0 (spike and skeleton), closing.** The run story, the
+> security harness, and CI on both platforms work, and a document renders the
+> way it does on GitHub. Syntax highlighting, the tuned typography and themes,
+> following links, and live reload arrive in M1 to M3, so this is not a daily
+> viewer yet. See the [plan](docs/CLONE-AND-RUN-PLAN.md) and the
 > [changelog](CHANGELOG.md).
 
-![ezmark M0 on Windows 11](docs/media/m0-windows.png)
+![ezmark on Windows 11](docs/media/m0-windows.png)
 
-The same build on macOS: [screenshot](docs/media/m0-macos.png). What M0 has
-proven, and what is still open, is in [docs/m0-evidence.md](docs/m0-evidence.md).
+On macOS: [screenshot](docs/media/m0-macos.png). What has been proven, and
+what is still open, is in [docs/m0-evidence.md](docs/m0-evidence.md).
 
 ## Why
 
@@ -27,6 +28,8 @@ the file changes, or render differently from GitHub. ezmark aims to be:
 - safe with untrusted files: sanitized HTML, a strict CSP, no network
 - steady while you read: live reload that keeps your place (M3)
 - correct about relative links and images, however the file was opened
+- honest when it cannot show something: an image that may not load, a file
+  that is not text, a render that is taking long, each says so in words
 - small enough to read in an afternoon
 
 ## Run it
@@ -65,7 +68,9 @@ cargo run --release -- path/to/file.md
 ```
 
 Paths may be relative, quoted, or contain spaces and Unicode. Run it without a
-file to get a window you can drop a file onto.
+file to get a window you can drop a file onto. `--help` and `--version` do
+what you expect. Files in UTF-8 or UTF-16 both open, which matters on Windows,
+where Windows PowerShell writes UTF-16 for every `>` redirect.
 
 ### Optional: build an app bundle
 
@@ -83,14 +88,25 @@ cargo tauri build
 ezmark treats every document as hostile. Raw HTML is sanitized in Rust, a
 strict Content Security Policy allows images only from ezmark's own asset
 scheme, every link click is intercepted, and file access is confined to the
-document's folder or its git repository. The full contract is
-[ADR 0003](docs/adr/0003-security-contract.md).
+document's folder or its git repository (never your whole home folder). The
+full contract is [ADR 0003](docs/adr/0003-security-contract.md).
 
-"No network" is stated at the level of the evidence: the CSP blocks remote
+"No network" is stated at the level of the evidence. The CSP blocks remote
 loads, the app code makes no network calls, and no network plugins are
-enabled. The CI security harness proves that each test fixture's remote loads
-are blocked by the enforced CSP and reach no listener. It cannot prove that
-the system webview itself never touches the network.
+enabled. On Windows the webview also runs behind a network lock: its only
+route out is a proxy that does not exist, because testing showed WebView2
+making connections of its own that no content policy governs (a refused
+navigation still sends its request, and a preconnect hint connects). The CI
+security harness injects every kind of load and navigation past the sanitizer
+and requires that none reaches a listener.
+
+What ezmark cannot promise is the behaviour of the system webview itself. A
+process-level measurement on Windows found that, with the lock, the webview's
+network stack makes no connection at all, but that on a machine signed in with
+a Microsoft account the WebView2 runtime still contacts Microsoft about that
+account through Windows' own sign-in library. It does so whether or not a
+file is open, and nothing an app can set turns it off. The numbers and their
+blind spots are in [docs/measurements.md](docs/measurements.md).
 
 Report vulnerabilities privately: see [SECURITY.md](SECURITY.md).
 
@@ -101,10 +117,21 @@ Report vulnerabilities privately: see [SECURITY.md](SECURITY.md).
   change security settings; if Smart App Control is on, it will not run.
 - **No Linux** in v1.
 - **No Mermaid diagrams or math** in v1. Their fences show as code.
-- **Remote images never load** in v1. In M0 they are removed; from M1 a
-  placeholder shows the URL.
-- **M0 has no styling work yet**: no syntax highlighting, themes beyond the
-  system light or dark default, outline, find, or live reload.
+- **Remote images never load** in v1. A line of text takes their place and
+  shows the URL. The same goes for an image outside the folder ezmark may
+  read, which includes `../` images in a repository downloaded as a ZIP,
+  because without a `.git` folder the document's own folder is the limit.
+- **Links do nothing yet.** Clicking one is cancelled; following links to
+  other files and opening web links in your browser are M2.
+- **Not yet**: syntax highlighting (M1), the tuned typography, themes beyond
+  the system light or dark default, outline, find (M2), and live reload (M3).
+- **Deeply nested files show as plain text.** Nesting more than 512 levels
+  deep (no real document does) costs the parser time that grows with the
+  square of the depth, so such a file is shown unrendered, with a note.
+- **A slow render cannot be stopped yet**, only superseded by opening another
+  file. The window says "Still rendering" while it waits. A stop action is M3.
+- **The network lock is Windows-only.** macOS relies on the CSP and the
+  sanitizer; see the security section.
 
 ## Scope
 
