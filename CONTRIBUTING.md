@@ -73,7 +73,7 @@ name to that script.
   `fix:`, `docs:`, `test:`, `ci:`, `chore:`), small and focused.
 - Pull requests are squash-merged, even the author's own.
 - CI must be green on both runners: format, clippy, tests, harness, the
-  dependency audit, and a release build.
+  dependency audit, and a release build. `main` requires it.
 - Any change to the security contract updates ADR 0003 and adds a fixture.
 
 ## Icons
