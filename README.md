@@ -51,7 +51,6 @@ the file changes, or render differently from GitHub. ezmark aims to be:
 
 - Rust via [rustup](https://rustup.rs/).
 - Xcode Command Line Tools: `xcode-select --install`.
-- macOS 14 or later.
 - Tested on: macOS 15 on Apple Silicon, in CI. No other version is claimed yet.
 
 **Both:** git. Nothing else.
@@ -94,12 +93,11 @@ full contract is [ADR 0003](docs/adr/0003-security-contract.md).
 
 "No network" is stated at the level of the evidence. The CSP blocks remote
 loads, the app code makes no network calls, and no network plugins are
-enabled. The webview also runs behind a network lock: its only route out is
-a proxy that does not exist, because testing showed both system webviews
-making connections of their own that no content policy governs (on WebView2 a
-refused navigation still sends its request, and on both a preconnect hint
-connects). On Windows the lock is complete in every test; on macOS it is
-partial (see the limitations below). The CI
+enabled. On Windows the webview also runs behind a network lock: its only
+route out is a proxy that does not exist, because testing showed WebView2
+making connections of its own that no content policy governs (a refused
+navigation still sends its request, and a preconnect hint connects). macOS
+has no such lock yet (see the limitations below). The CI
 security harness injects every kind of load and navigation past the sanitizer
 and requires that none reaches a listener.
 
@@ -133,11 +131,10 @@ Report vulnerabilities privately: see [SECURITY.md](SECURITY.md).
   square of the depth, so such a file is shown unrendered, with a note.
 - **A slow render cannot be stopped yet**, only superseded by opening another
   file. The window says "Still rendering" while it waits. A stop action is M3.
-- **The network lock is complete on Windows and partial on macOS.** With
-  the same dead proxy, WKWebView still opened one connection to a local test
-  listener for markup injected past the sanitizer (a preconnect hint or a
-  frame). A document cannot produce that markup; see the security section.
-- **macOS 14 or later.** The lock uses a WebKit setting that macOS 13 lacks.
+- **The network lock is Windows-only.** On macOS, markup injected past the
+  sanitizer (a preconnect hint, a frame) made WKWebView open two connections
+  to a local test listener. A document cannot produce that markup, so this is
+  a missing second layer, not a hole; see the security section.
 
 ## Scope
 

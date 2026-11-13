@@ -565,9 +565,8 @@ fn speculative_connections_reach_no_listener() {
     assert_eq!(injected.matches("<link").count(), 4, "{injected}");
     let frame = enforced_report(&result, &loopback.origin);
     assert_eq!(frame["effectiveDirective"], "frame-src", "{frame:#}");
-    // WebView2's lock is complete. WKWebView's is not: with the same dead
-    // proxy it still opened one connection to this loopback listener on the
-    // macos-15 runner (two without the proxy), so there the count is
+    // The lock is WebView2's. WKWebView has none, and opens two connections
+    // to this listener on the macos-15 runner, so there the count is
     // reported, in the log and in docs/measurements.md, and not required.
     if cfg!(windows) {
         loopback.assert_untouched();

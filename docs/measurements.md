@@ -103,8 +103,9 @@ these.
 
 The same tests on WKWebView (`macos-15` runner, CI, 2026-11-13): the resource
 loads and script-driven requests reach nothing, as on Windows. A denied
-navigation sends no request, lock or no lock. The preconnect hints and the
-frame opened two connections without the lock and one with it. Before the right-click menu was suppressed on links, choosing "Save
+navigation sends no request. The preconnect hints and the frame open two
+connections. macOS has no lock; a dead proxy on the webview's data store was
+tried and gave one connection in one run and two in the next. Before the right-click menu was suppressed on links, choosing "Save
 link as" in the production build opened two connections to a listener.
 
 **What the process tree does on its own.** `scripts/netwatch-windows.ps1`

@@ -27,8 +27,7 @@ tauri-build.workspace = true
 
 [dependencies]
 mdcore.workspace = true
-# `macos-proxy` lets the network lock give WKWebView a proxy (main.rs).
-tauri = { workspace = true, features = ["macos-proxy"] }
+tauri.workspace = true
 tauri-plugin-single-instance.workspace = true
 serde.workspace = true
 serde_json.workspace = true

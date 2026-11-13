@@ -168,7 +168,7 @@ impl OpenRecord {
 }
 
 /// Whether the webview gets the production network lock (see `main.rs`).
-#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
+#[cfg_attr(not(windows), allow(dead_code))]
 pub fn network_lock() -> bool {
     config().network_lock
 }
