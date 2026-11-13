@@ -51,3 +51,39 @@ before the run, so no listener URL may survive anywhere in the output.
 <input type="image" src="{{LOOPBACK}}/input.png">
 
 <details open ontoggle="fetch('{{LOOPBACK}}/ontoggle')"><summary>details</summary>body</details>
+
+<link rel="preconnect" href="{{LOOPBACK}}">
+
+<link rel="dns-prefetch" href="{{LOOPBACK}}">
+
+<link rel="prefetch" href="{{LOOPBACK}}/prefetch">
+
+<link rel="preload" as="image" href="{{LOOPBACK}}/preload.png">
+
+![protocol-relative image](//{{LOOPBACK_AUTHORITY}}/protocol-relative.png)
+
+<a href="//{{LOOPBACK_AUTHORITY}}/protocol-relative-link">protocol-relative link</a>
+
+<a href="\\{{LOOPBACK_AUTHORITY}}\share\backslash-link">backslash link</a>
+
+<a href=" 	//{{LOOPBACK_AUTHORITY}}/padded-link">padded protocol-relative link</a>
+
+<img src=" {{LOOPBACK}}/padded.png ">
+
+<img src="missing-local.png" srcset="{{LOOPBACK}}/img-srcset.png 2x">
+
+<video><source src="{{LOOPBACK}}/video-source.mp4"><track src="{{LOOPBACK}}/track.vtt"></video>
+
+<blockquote cite="{{LOOPBACK}}/cite">cited quote</blockquote>
+
+<input type="text" value="typed" autofocus onfocus="fetch('{{LOOPBACK}}/onfocus')">
+
+<div id="content">an id that would shadow the app's content element</div>
+
+<a name="status">a name that would shadow the app's status element</a>
+
+<p class="document-notice image-placeholder notice error">classes the app styles as its own</p>
+
+- [x] a task list item, which must come out as a disabled checkbox
+
+[an http link, kept as a link and never followed]({{LOOPBACK}}/kept-http-link)

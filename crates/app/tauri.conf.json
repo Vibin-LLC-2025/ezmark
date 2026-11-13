@@ -14,8 +14,8 @@
       "csp": {
         "default-src": "'none'",
         "script-src": "'self'",
-        "style-src": "'self' 'unsafe-inline'",
-        "img-src": "ezasset: http://ezasset.localhost data:",
+        "style-src": "'self'",
+        "img-src": "ezasset: http://ezasset.localhost",
         "connect-src": "ipc: http://ipc.localhost",
         "frame-src": "'none'",
         "object-src": "'none'",

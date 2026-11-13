@@ -1,18 +1,20 @@
 //! The `ezasset` protocol: serves a document's local images (plan section 7).
 //!
-//! URLs carry the document generation and the document's raw reference,
-//! hex-encoded so the webview cannot normalise `..` segments or add a second
-//! layer of percent-encoding. The handler hex-decodes that transport layer and
-//! then validates the raw reference itself through mdcore's shared validator,
-//! independently of the check made at render time.
+//! URLs carry the id of the asset scope (the document's directory and root)
+//! and the document's raw reference, hex-encoded so the webview cannot
+//! normalise `..` segments or add a second layer of percent-encoding. The
+//! handler hex-decodes that transport layer and then validates the raw
+//! reference itself through mdcore's shared validator, independently of the
+//! check made at render time.
 
 use std::path::Path;
+use std::sync::{Condvar, Mutex};
 
 use tauri::http::{Response, StatusCode, header};
 use tauri::{AppHandle, Manager, Runtime, UriSchemeContext, UriSchemeResponder};
 
 use crate::MAIN_WINDOW;
-use crate::documents::{Documents, MAX_DOCUMENT_BYTES};
+use crate::documents::Documents;
 
 pub const SCHEME: &str = "ezasset";
 
@@ -24,13 +26,56 @@ const BASE: &str = "http://ezasset.localhost";
 #[cfg(not(windows))]
 const BASE: &str = "ezasset://localhost";
 
-/// The URL for a raw reference made by the document of `generation`.
-pub fn url(generation: u64, raw: &str) -> String {
-    let mut out = format!("{BASE}/{generation}/");
-    for byte in raw.bytes() {
-        out.push_str(&format!("{byte:02x}"));
+/// Images above this size are refused. Each one is read into memory whole.
+pub const MAX_IMAGE_BYTES: u64 = 20 * 1024 * 1024;
+
+/// How many images may be in memory at once on their way to the webview. A
+/// folder of large images, or one large image referenced under many
+/// spellings, then costs at most this many times [`MAX_IMAGE_BYTES`].
+const MAX_CONCURRENT_READS: usize = 4;
+
+static READS: ReadGate = ReadGate::new(MAX_CONCURRENT_READS);
+
+/// The URL for a raw reference made by a document in asset scope `scope`.
+pub fn url(scope: u64, raw: &str) -> String {
+    format!("{BASE}/{scope}/{}", mdcore::hex::encode(raw))
+}
+
+/// A counting gate: `enter` blocks while the limit is reached.
+#[derive(Debug)]
+struct ReadGate {
+    free: Mutex<usize>,
+    released: Condvar,
+}
+
+/// Held while one image is in memory; dropping it lets the next one in.
+#[derive(Debug)]
+struct ReadPermit<'a>(&'a ReadGate);
+
+impl ReadGate {
+    const fn new(limit: usize) -> Self {
+        Self {
+            free: Mutex::new(limit),
+            released: Condvar::new(),
+        }
     }
-    out
+
+    fn enter(&self) -> ReadPermit<'_> {
+        // The count is plain data, so a poisoned lock is still usable.
+        let mut free = self.free.lock().unwrap_or_else(|p| p.into_inner());
+        while *free == 0 {
+            free = self.released.wait(free).unwrap_or_else(|p| p.into_inner());
+        }
+        *free -= 1;
+        ReadPermit(self)
+    }
+}
+
+impl Drop for ReadPermit<'_> {
+    fn drop(&mut self) {
+        *self.0.free.lock().unwrap_or_else(|p| p.into_inner()) += 1;
+        self.0.released.notify_one();
+    }
 }
 
 pub fn handle<R: Runtime>(
@@ -42,21 +87,27 @@ pub fn handle<R: Runtime>(
     let from_main = ctx.webview_label() == MAIN_WINDOW;
     let path = request.uri().path().to_owned();
     tauri::async_runtime::spawn_blocking(move || {
-        let response = if from_main {
-            respond(&app, &path)
-        } else {
-            status(StatusCode::FORBIDDEN)
-        };
-        responder.respond(response);
+        if !from_main {
+            return responder.respond(status(StatusCode::FORBIDDEN));
+        }
+        let permit = READS.enter();
+        let response = respond(&app, &path);
+        // The webview takes responses on the main thread. Hand this one over
+        // there, and keep the permit until it has been taken: releasing it
+        // here would let any number of images queue up behind a busy UI.
+        let _ = app.run_on_main_thread(move || {
+            responder.respond(response);
+            drop(permit);
+        });
     });
 }
 
 fn respond<R: Runtime>(app: &AppHandle<R>, path: &str) -> Response<Vec<u8>> {
-    let Some((generation, raw)) = parse_path(path) else {
+    let Some((scope, raw)) = parse_path(path) else {
         return status(StatusCode::BAD_REQUEST);
     };
-    let Some(scope) = app.state::<Documents>().asset_scope(generation) else {
-        // Stale generation, or no document open: refuse.
+    let Some(scope) = app.state::<Documents>().asset_scope(scope) else {
+        // A previous document's scope, or no document open: refuse.
         return status(StatusCode::GONE);
     };
     let target =
@@ -70,7 +121,7 @@ fn respond<R: Runtime>(app: &AppHandle<R>, path: &str) -> Response<Vec<u8>> {
     };
     match std::fs::metadata(&target) {
         Ok(meta) if !meta.is_file() => return status(StatusCode::NOT_FOUND),
-        Ok(meta) if meta.len() > MAX_DOCUMENT_BYTES => {
+        Ok(meta) if meta.len() > MAX_IMAGE_BYTES => {
             return status(StatusCode::PAYLOAD_TOO_LARGE);
         }
         Ok(_) => {}
@@ -88,18 +139,13 @@ fn respond<R: Runtime>(app: &AppHandle<R>, path: &str) -> Response<Vec<u8>> {
         .unwrap_or_else(|_| status(StatusCode::INTERNAL_SERVER_ERROR))
 }
 
-/// `/<generation>/<hex>` to `(generation, raw reference)`.
+/// `/<scope>/<hex>` to `(scope id, raw reference)`.
 fn parse_path(path: &str) -> Option<(u64, String)> {
-    let (generation, hex) = path.strip_prefix('/')?.split_once('/')?;
-    let generation = generation.parse().ok()?;
-    if hex.is_empty() || hex.len() % 2 != 0 {
+    let (scope, hex) = path.strip_prefix('/')?.split_once('/')?;
+    if scope.is_empty() || !scope.bytes().all(|byte| byte.is_ascii_digit()) {
         return None;
     }
-    let bytes = (0..hex.len())
-        .step_by(2)
-        .map(|i| u8::from_str_radix(hex.get(i..i + 2)?, 16).ok())
-        .collect::<Option<Vec<u8>>>()?;
-    Some((generation, String::from_utf8(bytes).ok()?))
+    Some((scope.parse().ok()?, mdcore::hex::decode(hex)?))
 }
 
 /// Only image types are ever served.
@@ -145,9 +191,52 @@ mod tests {
 
     #[test]
     fn malformed_paths_are_refused() {
-        for path in ["", "/", "/7", "/7/", "/x/6162", "/7/616", "/7/zz", "/7/ff"] {
+        for path in [
+            "",
+            "/",
+            "/7",
+            "/7/",
+            "/x/6162",
+            "/+7/6162",
+            "/7/616",
+            "/7/zz",
+            "/7/ff",
+            "/7/+a",
+            "/99999999999999999999/6162",
+        ] {
             assert_eq!(parse_path(path), None, "{path}");
         }
+    }
+
+    #[test]
+    fn the_read_gate_never_admits_more_than_its_limit() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        static GATE: ReadGate = ReadGate::new(2);
+        static INSIDE: AtomicUsize = AtomicUsize::new(0);
+        static MOST: AtomicUsize = AtomicUsize::new(0);
+
+        let workers: Vec<_> = (0..8)
+            .map(|_| {
+                std::thread::spawn(|| {
+                    for _ in 0..50 {
+                        let _permit = GATE.enter();
+                        let inside = INSIDE.fetch_add(1, Ordering::SeqCst) + 1;
+                        MOST.fetch_max(inside, Ordering::SeqCst);
+                        std::thread::yield_now();
+                        INSIDE.fetch_sub(1, Ordering::SeqCst);
+                    }
+                })
+            })
+            .collect();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        assert!(
+            MOST.load(Ordering::SeqCst) <= 2,
+            "more than the limit got in"
+        );
+        assert_eq!(*GATE.free.lock().unwrap(), 2, "every permit came back");
     }
 
     #[test]

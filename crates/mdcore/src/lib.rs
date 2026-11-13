@@ -6,7 +6,15 @@
 //! is the only caller; a future Quick Look extension could be another.
 
 pub mod boundary;
+pub mod hex;
+mod nesting;
 mod render;
+mod text;
 
 pub use boundary::{Fs, RealFs, Rejection, split_reference, validate_reference};
-pub use render::{AssetUrlFn, RenderContext, render, sanitize};
+pub use nesting::MAX_DEPTH;
+pub use render::{
+    AssetUrlFn, BLOCKED_IMAGE_SCHEME, Fallback, ID_PREFIX, PLAIN_TEXT_LIMIT, RenderContext,
+    Rendered, render, sanitize,
+};
+pub use text::{Decoded, decode};

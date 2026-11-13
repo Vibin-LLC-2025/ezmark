@@ -35,15 +35,29 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - name: Type-check ui/ (pinned TypeScript)
+      - name: Type-check and test ui/ (pinned TypeScript, built-in node:test)
         run: |
           npm ci --no-audit --no-fund
           npm run typecheck
-      - name: README link check
+          npm test
+      # Links between files in the repo only, so that someone else's server
+      # being down cannot fail a pull request. The weekly workflow checks the
+      # external links.
+      - name: Link check (links within the repo)
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: --no-progress --max-retries 3 README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md docs/m0-evidence.md
+          args: --offline --no-progress README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md docs/m0-evidence.md
           fail: true
+
+  deny:
+    # Dependency audit: known vulnerabilities, licences, bans, and sources (deny.toml).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          command: check
+          arguments: --locked
 
   test:
     strategy:
@@ -75,6 +89,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/screenshot-windows.ps1 -Binary target/debug/ezmark.exe -File docs/media/demo/demo.md -Out screenshot-windows.png
+      - name: Real drag-and-drop onto the window (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./scripts/dragdrop-windows.ps1 -Binary target/debug/ezmark.exe
       - name: Real-app screenshot (macOS)
         if: runner.os == 'macOS'
         run: scripts/screenshot-macos.sh target/debug/ezmark docs/media/demo/demo.md screenshot-macos.png
@@ -89,6 +107,16 @@ jobs:
         env:
           EZMARK_HARNESS_APP: ${{ github.workspace }}/target/debug/bundle/macos/ezmark.app
         run: cargo test -p ezmark --locked --features test-harness --test harness -- --ignored cold_open --nocapture
+      # Finder itself opens the file, as a double-click would. It needs the
+      # runner image to let scripts control Finder, which is the image's
+      # business and not this repo's, so a failure here is reported and does
+      # not fail the job.
+      - name: Cold open by Finder (macOS)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        env:
+          EZMARK_HARNESS_APP: ${{ github.workspace }}/target/debug/bundle/macos/ezmark.app
+        run: cargo test -p ezmark --locked --features test-harness --test harness -- --ignored finder_open --nocapture
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -124,4 +152,27 @@ jobs:
         with:
           name: ezmark-${{ matrix.os }}
           path: target/release/ezmark${{ runner.os == 'Windows' && '.exe' || '' }}
+          if-no-files-found: error
+
+  # The optional second step from the README: a real installer. Nothing
+  # depends on it until M5, so it reports rot early without blocking a merge.
+  installer:
+    runs-on: windows-2025
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install the pinned tauri-cli
+        run: cargo install tauri-cli --version 2.12.4 --locked
+      - name: Build the per-user Windows installer
+        run: cargo tauri build --bundles nsis
+      - name: Production artifact contains no harness pieces
+        shell: bash
+        run: scripts/check-release-artifact.sh target/release/ezmark.exe absent
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ezmark-windows-installer
+          path: target/release/bundle/nsis/*-setup.exe
           if-no-files-found: error

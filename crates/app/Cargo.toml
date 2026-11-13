@@ -33,5 +33,10 @@ serde.workspace = true
 serde_json.workspace = true
 dunce.workspace = true
 
+# Native message boxes for the moments there is no window to say something in:
+# a failed start, and --help from a build that has no console.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+rfd.workspace = true
+
 [lints]
 workspace = true

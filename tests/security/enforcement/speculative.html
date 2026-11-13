@@ -1,0 +1,14 @@
+<!-- Enforcement corpus: connections the webview opens on its own account.
+     Injected unsanitized, bypassing mdcore. Measured on WebView2 157 on
+     2026-11-13 with the network lock off: a preconnect hint opens a TCP
+     connection that no CSP directive governs, and a frame opens one before
+     frame-src refuses its load (the report arrives, and so does the
+     connection). What stops both is the network lock, the webview's
+     dead-proxy configuration in crates/app/src/main.rs. Pass condition: an
+     enforced frame-src report, and zero connections. -->
+<link rel="preconnect" href="{{LOOPBACK}}">
+<link rel="preconnect" href="{{LOOPBACK}}" crossorigin>
+<link rel="dns-prefetch" href="{{LOOPBACK}}">
+<link rel="dns-prefetch" href="//{{LOOPBACK_AUTHORITY}}">
+<iframe src="{{LOOPBACK}}/iframe"></iframe>
+<p>Speculative connections only.</p>

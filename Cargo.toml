@@ -15,7 +15,7 @@ publish = false
 [workspace.dependencies]
 mdcore = { path = "crates/mdcore" }
 comrak = { version = "0.59.0", default-features = false }
-ammonia = "4.2.4"
+ammonia = "4.2.5"
 percent-encoding = "2.3.2"
 tauri = "2.12.5"
 tauri-build = "2.7.4"
@@ -23,6 +23,7 @@ tauri-plugin-single-instance = "2.5.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dunce = "1.0.5"
+rfd = { version = "0.18.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -30,3 +31,12 @@ missing_debug_implementations = "warn"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+
+[profile.release]
+# Free: no effect on build time. It removes symbols on macOS; on Windows they
+# already live in a separate file. Link-time optimisation was measured and
+# left off (docs/measurements.md): 11% smaller for a 67% longer first build,
+# and the first build is the number a reader waits through.
+strip = true
+# `panic` stays at its default, unwind: a render that panics is caught and
+# shown as an error (crates/app/src/documents.rs).

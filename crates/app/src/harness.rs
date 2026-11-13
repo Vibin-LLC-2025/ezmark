@@ -15,20 +15,32 @@
 //! - `EZMARK_HARNESS_INJECT`: an HTML file to inject unsanitized after rendering.
 //! - `EZMARK_HARNESS_PROBE_ASSET`: a raw reference to request directly from the
 //!   asset handler, bypassing the renderer's own check.
+//! - `EZMARK_HARNESS_EXPECT_BLOCKED`: space-separated URLs; the page waits for
+//!   a CSP report whose blocked URL starts with each one before it reports.
+//! - `EZMARK_HARNESS_CONNECT_PROBE`: an origin the page tries to reach from
+//!   script (`fetch`, WebSocket, a script element, and so on).
+//! - `EZMARK_HARNESS_NAVIGATION_PROBE`: an origin the page tries to navigate
+//!   to (link clicks, a form submit, `window.open`, `location`).
+//! - `EZMARK_HARNESS_EXPECT_DENIED_NAVIGATIONS`: space-separated URLs; the
+//!   final report waits until the navigation guard has denied each one.
+//! - `EZMARK_HARNESS_NETWORK_LOCK`: `off` starts the webview without the
+//!   network lock (Windows), so a test can show what the CSP stops alone.
 //! - `EZMARK_HARNESS_MODE`: `report` (default, exit after reporting) or `hold`
 //!   (stay open on top, for screenshots).
-//! - `EZMARK_HARNESS_OUT`: also write the result to this file.
+//! - `EZMARK_HARNESS_OUT`: also write the result to this file. Without it the
+//!   result also goes to `ezmark-harness-last-result.json` in the temp
+//!   directory, for launches that can pass no environment (Finder).
 //! - `EZMARK_HARNESS_TIMEOUT_SECS`: give up and exit with code 3 (default 60).
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use tauri::{AppHandle, Manager, Runtime, WebviewWindowBuilder};
+use tauri::{AppHandle, Manager, Runtime, Url, WebviewWindowBuilder};
 
 use crate::documents::{Documents, OpenOrigin};
 
@@ -41,6 +53,36 @@ pub const EVENT_PREFIX: &str = "EZMARK_HARNESS_EVENT ";
 /// Set if the ACL ever lets the denied probe through.
 static DENIED_PROBE_EXECUTED: AtomicBool = AtomicBool::new(false);
 
+/// Every navigation the webview asked the Rust guard about.
+static NAVIGATIONS: Mutex<Vec<NavigationRecord>> = Mutex::new(Vec::new());
+
+/// How long the final report waits for the expected denied navigations.
+const NAVIGATION_WAIT: Duration = Duration::from_secs(10);
+
+/// One navigation request as the guard in `main.rs` saw it.
+#[derive(Debug, Clone, Serialize)]
+pub struct NavigationRecord {
+    url: String,
+    allowed: bool,
+}
+
+pub fn record_navigation(url: &Url, allowed: bool) {
+    NAVIGATIONS
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .push(NavigationRecord {
+            url: url.to_string(),
+            allowed,
+        });
+}
+
+fn navigations() -> Vec<NavigationRecord> {
+    NAVIGATIONS
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .clone()
+}
+
 /// The part of the configuration the injected script sees.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -48,6 +90,9 @@ struct ScriptConfig {
     renders: u32,
     inject: bool,
     probe_asset: Option<String>,
+    expect_blocked: Vec<String>,
+    connect_probe: Option<String>,
+    navigation_probe: Option<String>,
     hold: bool,
 }
 
@@ -57,6 +102,8 @@ struct Config {
     script: ScriptConfig,
     inject_path: Option<PathBuf>,
     out: Option<PathBuf>,
+    expect_denied_navigations: Vec<String>,
+    network_lock: bool,
     timeout: Duration,
 }
 
@@ -64,6 +111,11 @@ fn config() -> &'static Config {
     static CONFIG: OnceLock<Config> = OnceLock::new();
     CONFIG.get_or_init(|| {
         let var = |name: &str| std::env::var(name).ok().filter(|v| !v.is_empty());
+        let list = |name: &str| -> Vec<String> {
+            var(name)
+                .map(|urls| urls.split_whitespace().map(str::to_owned).collect())
+                .unwrap_or_default()
+        };
         let inject_path = var("EZMARK_HARNESS_INJECT").map(PathBuf::from);
         Config {
             id: var("EZMARK_HARNESS_ID").map(|id| {
@@ -77,10 +129,15 @@ fn config() -> &'static Config {
                     .unwrap_or(1),
                 inject: inject_path.is_some(),
                 probe_asset: var("EZMARK_HARNESS_PROBE_ASSET"),
+                expect_blocked: list("EZMARK_HARNESS_EXPECT_BLOCKED"),
+                connect_probe: var("EZMARK_HARNESS_CONNECT_PROBE"),
+                navigation_probe: var("EZMARK_HARNESS_NAVIGATION_PROBE"),
                 hold: var("EZMARK_HARNESS_MODE").as_deref() == Some("hold"),
             },
             inject_path,
             out: var("EZMARK_HARNESS_OUT").map(PathBuf::from),
+            expect_denied_navigations: list("EZMARK_HARNESS_EXPECT_DENIED_NAVIGATIONS"),
+            network_lock: var("EZMARK_HARNESS_NETWORK_LOCK").as_deref() != Some("off"),
             timeout: Duration::from_secs(
                 var("EZMARK_HARNESS_TIMEOUT_SECS")
                     .and_then(|v| v.parse().ok())
@@ -108,6 +165,12 @@ impl OpenRecord {
             buffered,
         }
     }
+}
+
+/// Whether the webview gets the production network lock (see `main.rs`).
+#[cfg_attr(not(windows), allow(dead_code))]
+pub fn network_lock() -> bool {
+    config().network_lock
 }
 
 pub fn adjust_context<R: Runtime>(context: &mut tauri::Context<R>) {
@@ -143,7 +206,10 @@ pub fn configure_window<'a, R: Runtime, M: Manager<R>>(
 }
 
 /// The page reports a render (`rendered`) or its final findings (`final`).
-#[tauri::command]
+///
+/// Runs off the main thread (`async`), because the final report waits for
+/// navigation attempts that the guard records on the main thread.
+#[tauri::command(async)]
 pub fn harness_report(app: AppHandle, kind: String, data: Value) {
     match kind.as_str() {
         "rendered" => {
@@ -154,12 +220,31 @@ pub fn harness_report(app: AppHandle, kind: String, data: Value) {
             let _ = std::io::stdout().flush();
         }
         "final" => {
+            // A denied navigation is reported by the webview's browser
+            // process on its own schedule; wait for the ones the test expects
+            // rather than for a fixed time.
+            let deadline = Instant::now() + NAVIGATION_WAIT;
+            let all_denied = || {
+                let seen = navigations();
+                config()
+                    .expect_denied_navigations
+                    .iter()
+                    .all(|url| seen.iter().any(|n| !n.allowed && n.url == *url))
+            };
+            while !all_denied() && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(25));
+            }
             let documents = app.state::<Documents>();
+            let window_title = app
+                .get_webview_window(crate::MAIN_WINDOW)
+                .and_then(|window| window.title().ok());
             let result = json!({
                 "timedOut": false,
                 "page": data,
                 "view": documents.view(),
+                "windowTitle": window_title,
                 "opens": documents.harness_opens(),
+                "navigations": navigations(),
                 "deniedProbeExecuted": DENIED_PROBE_EXECUTED.load(Ordering::SeqCst),
             });
             emit_result(&result);
@@ -197,14 +282,19 @@ fn emit_result(result: &Value) {
     let line = result.to_string();
     println!("{RESULT_PREFIX}{line}");
     let _ = std::io::stdout().flush();
-    // Launches through `open` on macOS have no useful stdout, so also write a file.
+    // Launches through `open` or Finder on macOS have no useful stdout, so
+    // also write a file.
     let fallback = std::env::temp_dir().join("ezmark-harness-last-result.json");
-    for path in config().out.iter().chain(std::iter::once(&fallback)) {
-        if let Err(error) = std::fs::write(path, &line) {
-            eprintln!(
-                "ezmark harness: could not write {}: {error}",
-                path.display()
-            );
-        }
+    let path = config().out.as_ref().unwrap_or(&fallback);
+    // Written beside the target and renamed into place, so a test polling
+    // for the file never reads half of it.
+    let partial = path.with_extension("partial");
+    if let Err(error) =
+        std::fs::write(&partial, &line).and_then(|()| std::fs::rename(&partial, path))
+    {
+        eprintln!(
+            "ezmark harness: could not write {}: {error}",
+            path.display()
+        );
     }
 }

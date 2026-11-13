@@ -1,0 +1,25 @@
+<!-- Enforcement corpus: every way an element can ask for a resource (frames
+     are in speculative.html, for the reason given there). Injected
+     unsanitized, bypassing mdcore, so the Content Security Policy alone must
+     stop each one. Pass condition: zero connections to the listener, no
+     payload script ran, and an enforced violation report for each load the
+     test names. Each payload has its own path so a stray connection or a
+     report can be traced to it. -->
+<img src="{{LOOPBACK}}/img.png" onerror="window.__EZMARK_PAYLOAD_RAN__ = 'onerror'" alt="">
+<img srcset="{{LOOPBACK}}/srcset.png 2x" alt="">
+<picture><source srcset="{{LOOPBACK}}/picture-source.png"><img alt=""></picture>
+<object data="{{LOOPBACK}}/object"></object>
+<embed src="{{LOOPBACK}}/embed">
+<video src="{{LOOPBACK}}/video.mp4" poster="{{LOOPBACK}}/poster.png" muted></video>
+<audio src="{{LOOPBACK}}/audio.mp3"></audio>
+<link rel="stylesheet" href="{{LOOPBACK}}/stylesheet.css">
+<link rel="preload" as="image" href="{{LOOPBACK}}/preload.png">
+<link rel="prefetch" href="{{LOOPBACK}}/prefetch">
+<link rel="modulepreload" href="{{LOOPBACK}}/modulepreload.js">
+<style>@import url("{{LOOPBACK}}/import.css"); p { background: url("{{LOOPBACK}}/style-element.png") }</style>
+<div style="background-image: url('{{LOOPBACK}}/style-attribute.png')">styled</div>
+<svg width="1" height="1"><image href="{{LOOPBACK}}/svg-image.png" width="1" height="1"></image><use href="{{LOOPBACK}}/svg-use.svg#x"></use></svg>
+<input type="image" src="{{LOOPBACK}}/input-image.png" alt="">
+<table background="{{LOOPBACK}}/table-background.png"><tr><td>cell</td></tr></table>
+<details open ontoggle="window.__EZMARK_PAYLOAD_RAN__ = 'ontoggle'"><summary>details</summary>body</details>
+<p>A paragraph for the style element to target.</p>

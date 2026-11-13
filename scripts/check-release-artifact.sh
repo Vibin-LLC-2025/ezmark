@@ -7,7 +7,8 @@
 # The `present` run is the positive control: it proves these markers are
 # visible in a binary that does contain the harness, so an `absent` pass means
 # something. Markers cover the injection command and its siblings, their ACL
-# entries, and the injected script (the only test asset compiled in).
+# entries, the switch that turns the network lock off, and the injected script
+# (the only test asset compiled in).
 set -euo pipefail
 
 binary="${1:?usage: $0 <binary> absent|present}"
@@ -22,6 +23,8 @@ markers=(
   __EZMARK_HARNESS_CONFIG__
   securitypolicyviolation
   EZMARK_HARNESS_RESULT
+  EZMARK_HARNESS_NETWORK_LOCK
+  ezmark-sentinel.invalid
 )
 
 failed=0

@@ -1,23 +1,26 @@
 # ezmark demo document
 
-A read-only markdown viewer. This file is what the M0 screenshots show, so it
-exercises the pieces M0 proves: GitHub-flavoured parsing, sanitizing, and a
-relative image served through the asset protocol.
+A read-only markdown viewer. This file is what the screenshots show, so it
+exercises what the current build does: GitHub-flavoured rendering, sanitizing,
+a relative image served through the asset protocol, and a remote image that is
+never fetched.
 
 ![ezmark icon, loaded from a relative path](icon.png)
+![A remote badge](https://img.shields.io/badge/remote-never%20loaded-blue)
 
-## What works in M0
+## What works today
 
 - [x] `cargo run --release -- file.md` from the repo root
 - [x] Relative images through the `ezasset` protocol
-- [x] Sanitized raw HTML, enforced CSP, ACL-checked IPC
-- [ ] Typography, themes, outline (M2)
+- [x] Sanitized raw HTML, enforced CSP, ACL-checked IPC, a network lock
+- [x] Alerts, task lists, footnotes, and heading links[^1]
+- [ ] Syntax highlighting (M1), typography and themes (M2)
 
-| Piece | Where |
-|---|---|
-| Engine | `crates/mdcore` |
-| Shell | `crates/app` |
-| View | `ui/` |
+| Piece | Where | Lines |
+|---|---|:-:|
+| Engine | `crates/mdcore` | small |
+| Shell | `crates/app` | smaller |
+| View | `ui/` | smallest |
 
 ```rust
 fn main() {
@@ -26,12 +29,18 @@ fn main() {
 ```
 
 > [!NOTE]
-> In M0, GitHub alerts parse; their styling arrives with the typography work.
+> GitHub alerts render with their own colour.
+
+> [!WARNING]
+> A document cannot run script, load a remote resource, or leave its folder.
 
 <details><summary>Raw HTML survives sanitizing when it is safe</summary>
 
-This came from a `<details>` element in the source.
+This came from a `<details>` element in the source. Press <kbd>Space</kbd> on
+the summary to toggle it.
 
 </details>
 
 <script>alert("this never runs")</script>
+
+[^1]: Footnotes jump here and back. [Back to the top](#ezmark-demo-document).

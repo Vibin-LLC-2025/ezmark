@@ -5,8 +5,10 @@
 //! is part of the security contract (plan section 7):
 //!
 //! 1. A cheap gate on the raw input: no NUL, no URL scheme.
-//! 2. Percent-decode exactly once, strictly. Nothing downstream decodes again,
-//!    so `%255C` becomes the literal three characters `%5C`.
+//! 2. Percent-decode exactly once. Nothing downstream decodes again, so
+//!    `%255C` becomes the literal three characters `%5C`. A `%` that does not
+//!    start a two-digit hex escape is kept as a literal `%`, as browsers do,
+//!    so a file named `100%.png` can be referenced as written.
 //! 3. Inspect the decoded string before touching the filesystem: reject
 //!    schemes, UNC and device paths, NUL, and (on Windows) drive-relative
 //!    paths, alternate data streams, and reserved device names. Canonicalizing
@@ -17,6 +19,8 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
+use crate::hex;
+
 /// Why a reference was refused.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Rejection {
@@ -26,8 +30,7 @@ pub enum Rejection {
     Nul,
     /// The reference names a URL scheme (`file:`, `https:`, ...), raw or decoded.
     Scheme,
-    /// A `%` that does not start a two-digit hex escape, or decoded bytes that
-    /// are not UTF-8.
+    /// The percent-decoded bytes are not UTF-8.
     MalformedEscape,
     /// A UNC (`\\server\share`, `//server/share`) or device (`\\?\`, `\\.\`) path.
     NetworkOrDevicePath,
@@ -46,7 +49,7 @@ impl std::fmt::Display for Rejection {
             Rejection::Empty => "empty reference",
             Rejection::Nul => "reference contains NUL",
             Rejection::Scheme => "reference is not a local path",
-            Rejection::MalformedEscape => "reference has a malformed percent escape",
+            Rejection::MalformedEscape => "reference does not decode to text",
             Rejection::NetworkOrDevicePath => "network and device paths are not allowed",
             Rejection::UnsupportedWindowsPath => "unsupported Windows path form",
             Rejection::NotFound => "file not found",
@@ -125,36 +128,34 @@ fn raw_gate(raw: &str) -> Result<(), Rejection> {
     Ok(())
 }
 
-/// Step 2: percent-decode exactly once. A `%` must be followed by two hex
-/// digits; anything else is refused rather than guessed at.
+/// Step 2: percent-decode exactly once. A `%` followed by two hex digits is
+/// an escape; any other `%` is a literal character. Either way the result is
+/// never decoded again, and it is the decoded string that step 3 inspects, so
+/// leniency here cannot smuggle anything past the inspection.
 pub fn decode_once(raw: &str) -> Result<String, Rejection> {
     let bytes = raw.as_bytes();
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;
     while i < bytes.len() {
-        if bytes[i] == b'%' {
-            let hi = bytes.get(i + 1).and_then(|b| hex_value(*b));
-            let lo = bytes.get(i + 2).and_then(|b| hex_value(*b));
-            match (hi, lo) {
-                (Some(hi), Some(lo)) => out.push(hi << 4 | lo),
-                _ => return Err(Rejection::MalformedEscape),
+        let escape = (bytes[i] == b'%')
+            .then(|| {
+                let hi = hex::digit(*bytes.get(i + 1)?)?;
+                let lo = hex::digit(*bytes.get(i + 2)?)?;
+                Some(hi << 4 | lo)
+            })
+            .flatten();
+        match escape {
+            Some(byte) => {
+                out.push(byte);
+                i += 3;
             }
-            i += 3;
-        } else {
-            out.push(bytes[i]);
-            i += 1;
+            None => {
+                out.push(bytes[i]);
+                i += 1;
+            }
         }
     }
     String::from_utf8(out).map_err(|_| Rejection::MalformedEscape)
-}
-
-fn hex_value(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
-    }
 }
 
 /// Step 3: inspect the decoded string. No filesystem access happens here.
@@ -287,8 +288,11 @@ mod tests {
         assert_eq!(decode_once("my%20pic.png").unwrap(), "my pic.png");
         assert_eq!(decode_once("%255C").unwrap(), "%5C");
         assert_eq!(decode_once("caf%C3%A9.md").unwrap(), "café.md");
-        assert_eq!(decode_once("100%"), Err(Rejection::MalformedEscape));
-        assert_eq!(decode_once("%zz"), Err(Rejection::MalformedEscape));
+        // A `%` that starts no escape is a literal, and is not looked at again.
+        assert_eq!(decode_once("100%").unwrap(), "100%");
+        assert_eq!(decode_once("100%.png").unwrap(), "100%.png");
+        assert_eq!(decode_once("%zz%4").unwrap(), "%zz%4");
+        assert_eq!(decode_once("%%32E").unwrap(), "%2E");
         assert_eq!(decode_once("%FF"), Err(Rejection::MalformedEscape));
     }
 
@@ -337,7 +341,7 @@ mod tests {
     fn nul_and_malformed_input_never_reach_the_filesystem() {
         assert_eq!(rejected_before_fs("a\0.png"), Rejection::Nul);
         assert_eq!(rejected_before_fs("a%00.png"), Rejection::Nul);
-        assert_eq!(rejected_before_fs("50%.png"), Rejection::MalformedEscape);
+        assert_eq!(rejected_before_fs("%C3%28.png"), Rejection::MalformedEscape);
         assert_eq!(rejected_before_fs(""), Rejection::Empty);
     }
 
@@ -428,5 +432,85 @@ mod tests {
             Err(Rejection::NotFound)
         );
         std::fs::remove_dir_all(&base).unwrap();
+    }
+
+    /// A literal `%` cannot hide a second layer of encoding: what the
+    /// inspection sees is exactly what reaches the filesystem.
+    #[test]
+    fn a_literal_percent_is_inspected_like_any_other_character() {
+        assert_eq!(
+            rejected_before_fs("%5C%5Cserver%\\share"),
+            Rejection::NetworkOrDevicePath
+        );
+        let fs = RecordingFs::default();
+        let doc = Path::new("doc");
+        let err = validate_reference("%%35C%%35Cserver", doc, doc, &fs).unwrap_err();
+        assert_eq!(err, Rejection::NotFound);
+        assert_eq!(*fs.calls.borrow(), vec![doc.join("%5C%5Cserver")]);
+    }
+
+    /// A link inside the root that points outside it (plan section 7,
+    /// "symlinks pointing outside the root"). Windows uses a junction, which
+    /// needs no privilege; a directory symlink there needs developer mode.
+    #[test]
+    fn a_link_out_of_the_root_is_refused() {
+        let base = std::env::temp_dir().join(format!("mdcore-link-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let root = base.join("root");
+        let outside = base.join("outside");
+        std::fs::create_dir_all(root.join("img")).unwrap();
+        std::fs::create_dir_all(&outside).unwrap();
+        std::fs::write(outside.join("secret.png"), b"x").unwrap();
+        std::fs::write(root.join("img").join("inside.png"), b"x").unwrap();
+        link_dir(&outside, &root.join("escape"));
+        link_dir(&root.join("img"), &root.join("alias"));
+        let root = std::fs::canonicalize(&root).unwrap();
+
+        // Positive control: the link works, so a refusal below is the root
+        // check and not a broken link.
+        assert!(root.join("escape").join("secret.png").exists());
+        assert_eq!(
+            validate_reference("escape/secret.png", &root, &root, &RealFs),
+            Err(Rejection::OutsideRoot)
+        );
+        assert_eq!(
+            validate_reference("escape%2Fsecret.png", &root, &root, &RealFs),
+            Err(Rejection::OutsideRoot)
+        );
+        // A link that stays inside the root is followed.
+        let inside = validate_reference("alias/inside.png", &root, &root, &RealFs).unwrap();
+        assert_eq!(inside, root.join("img").join("inside.png"));
+
+        // Remove the links first, so nothing can follow them into `outside`.
+        unlink_dir(&root.join("escape"));
+        unlink_dir(&root.join("alias"));
+        std::fs::remove_dir_all(&base).unwrap();
+    }
+
+    #[cfg(windows)]
+    fn link_dir(target: &Path, link: &Path) {
+        let status = std::process::Command::new("cmd")
+            .args(["/C", "mklink", "/J"])
+            .arg(link)
+            .arg(target)
+            .stdout(std::process::Stdio::null())
+            .status()
+            .expect("run mklink");
+        assert!(status.success(), "mklink /J failed");
+    }
+
+    #[cfg(unix)]
+    fn link_dir(target: &Path, link: &Path) {
+        std::os::unix::fs::symlink(target, link).expect("create symlink");
+    }
+
+    #[cfg(windows)]
+    fn unlink_dir(link: &Path) {
+        std::fs::remove_dir(link).expect("remove junction");
+    }
+
+    #[cfg(unix)]
+    fn unlink_dir(link: &Path) {
+        std::fs::remove_file(link).expect("remove symlink");
     }
 }
