@@ -20,8 +20,8 @@ Defense in depth, with every layer testable:
 
 1. **No network.** The v1 binary makes no network connections. Remote
    resources referenced by a document are never loaded; the CSP `img-src`
-   allows only the app's asset scheme. On Windows the webview also runs
-   behind a network lock (below). Opt-in remote loading is a v1.1 decision
+   allows only the app's asset scheme. The webview also runs behind a
+   network lock (below), complete on Windows and partial on macOS. Opt-in remote loading is a v1.1 decision
    with its own ADR.
 2. **Sanitizer.** Everything that leaves `mdcore` is sanitized by ammonia.
    URL-bearing attributes are covered on every element. Links keep only
@@ -90,9 +90,17 @@ changed the contract in these ways. Each has a fixture or a unit test.
   host name resolution, and the browser's own background requests off
   (`WEBVIEW2_ARGUMENTS` in `crates/app/src/main.rs`). The app's own schemes
   are answered in-process and are unaffected. With the lock, the same three
-  fixtures reach no listener. macOS has no lock yet: WKWebView takes no such
-  arguments, and what it does in these three cases is what the same tests
-  measure in CI.
+  fixtures reach no listener.
+
+  WKWebView takes no arguments, so on macOS the lock is the same dead proxy
+  set on the webview's data store, which needs macOS 14. Measured on the
+  `macos-15` runner on 2026-11-13: WKWebView does not send a request for a
+  navigation the handler denies, with or without the lock; for the
+  preconnect-and-frame fixture it opened two connections without the lock and
+  one with it. The listener is on a loopback address, which the proxy setting
+  may exempt, so whether a remote host would see that one connection is not
+  known. The lock on macOS is therefore partial, and the test reports the
+  count there instead of requiring zero.
 - **`http` links are kept.** They were dropped, which made every link to a
   local development server dead text, and bought nothing: no link navigates
   the webview. Network-path links (`//host/x`, `\\host\x`) are dropped,

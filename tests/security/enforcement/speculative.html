@@ -5,7 +5,9 @@
      frame-src refuses its load (the report arrives, and so does the
      connection). What stops both is the network lock, the webview's
      dead-proxy configuration in crates/app/src/main.rs. Pass condition: an
-     enforced frame-src report, and zero connections. -->
+     enforced frame-src report, and on Windows zero connections. WKWebView
+     with the same proxy still opens one connection to a loopback listener
+     (macos-15 runner, 2026-11-13), so on macOS the count is only reported. -->
 <link rel="preconnect" href="{{LOOPBACK}}">
 <link rel="preconnect" href="{{LOOPBACK}}" crossorigin>
 <link rel="dns-prefetch" href="{{LOOPBACK}}">

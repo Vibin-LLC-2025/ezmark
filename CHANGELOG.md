@@ -38,7 +38,7 @@ amended in its section 17, and the security contract in ADR 0003.
 
 #### Security
 
-- **A network lock for the webview (Windows).** New tests injected every kind
+- **A network lock for the webview.** New tests injected every kind
   of load and navigation past the sanitizer, and three reached the test
   listener on WebView2 157: a navigation the Rust guard denied had already
   sent its request, a `preconnect` hint opened a connection no CSP directive
@@ -46,7 +46,9 @@ amended in its section 17, and the security contract in ADR 0003.
   reachable from a document, because the sanitizer removes the markup, but
   the layers are meant to hold independently. The webview now starts with a
   proxy that does not exist, no loopback exception, no host name resolution,
-  and background requests off.
+  and background requests off. WKWebView gets the same dead proxy; there it
+  cut the stray connections from two to one, so the lock is complete on
+  Windows and partial on macOS. It needs macOS 14, the new minimum.
 - **ammonia 4.2.4 to 4.2.5** for RUSTSEC-2026-0533 (mutation XSS), found by
   the new `cargo deny` job.
 - **The webview's menu and downloads.** The built-in context menu on a link

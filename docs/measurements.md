@@ -99,7 +99,12 @@ sanitizer and counts connections at a loopback listener
 | `<meta http-equiv="refresh">`, `location = ...` | The full `GET`, although the Rust guard denied the navigation and the page stayed |
 
 With the network lock on, as shipped: nothing reaches the listener in any of
-these. Before the right-click menu was suppressed on links, choosing "Save
+these.
+
+The same tests on WKWebView (`macos-15` runner, CI, 2026-11-13): the resource
+loads and script-driven requests reach nothing, as on Windows. A denied
+navigation sends no request, lock or no lock. The preconnect hints and the
+frame opened two connections without the lock and one with it. Before the right-click menu was suppressed on links, choosing "Save
 link as" in the production build opened two connections to a listener.
 
 **What the process tree does on its own.** `scripts/netwatch-windows.ps1`
@@ -126,7 +131,7 @@ account's name into the webview profile folder under
 
 What this cannot see: a connection from `ezmark.exe` shorter than the sampling
 gap, traffic made on the app's behalf by system services outside the process
-tree, anything on a timer longer than 90 seconds, and macOS entirely. An
+tree, anything on a timer longer than 90 seconds, and the process tree on macOS. An
 elevated packet capture would close the first three.
 
 ### A short fuzz of the renderer

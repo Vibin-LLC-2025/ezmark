@@ -33,7 +33,7 @@ M1 adds highlighting (syntect), front matter, and image dimensions here.
 ### `crates/app` (binary `ezmark`)
 
 - `main.rs`: builder wiring, the main window, the navigation guard, the
-  download refusal, the WebView2 network lock, drag-drop, and macOS
+  download refusal, the network lock, drag-drop, and macOS
   `RunEvent::Opened`.
 - `launch.rs`: argv parsing (`--help`, `--version`, one file), and telling the
   user something when there is no window and maybe no console. Relative paths
@@ -127,8 +127,9 @@ code. Breaking one is a security bug.
 5. The webview never navigates away from the app origin, opens no window, and
    downloads nothing.
 6. The CSP allows images only from the asset scheme, scripts and styles only
-   from the bundle, and nothing in the app opens a network connection. On
-   Windows the webview's network stack has no route out (the network lock).
+   from the bundle, and nothing in the app opens a network connection. The
+   webview's network stack is pointed at a proxy that does not exist (the
+   network lock: complete on Windows, partial on macOS).
 7. Nothing from the `test-harness` feature appears in a production binary.
 8. A document's ids, names, and classes cannot collide with the app's own:
    ids and names are prefixed, and only a fixed list of classes survives.
