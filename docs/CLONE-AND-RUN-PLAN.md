@@ -367,7 +367,7 @@ Sections 1 to 16 are the plan as agreed on 2026-10-26 and are left as written. A
 
 - **M0 closes on CI evidence.** The M0 row required a clean Windows 11 VM rehearsal, a clean macOS run, and a cold open by a Finder double-click. The author's machines cannot do the first, and the other two wait on access to a Mac. These three checks move to the External test milestone, which already exists for exactly this: clean machines, operated by someone other than the author. M0 is done when CI is green on both runners with the checks in `docs/m0-evidence.md`. The author's own Mac run, when it happens, is recorded there as extra evidence, not as a gate.
 - **Human-only checks are batched.** Every commit in M0 landed on one day, and the 17 days after it were spent waiting on checks only a person with the right hardware can do. From here on, such checks are collected into two fixed points, the end of M2 and the External test, and no coding milestone waits on one.
-- **`main` is protected.** The four CI checks are required before a merge. CONTRIBUTING said so; now GitHub enforces it.
+- **`main` is to be protected.** CONTRIBUTING says CI must be green before a merge, and nothing enforces it. Requiring the CI checks on `main` is a repository setting, to be turned on when PR #1 merges.
 
 ### Security contract (section 7)
 
