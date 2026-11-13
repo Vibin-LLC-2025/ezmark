@@ -145,15 +145,28 @@ fn create_main_window<R: Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
     } else {
         builder
     };
+    // The same idea for WKWebView, which takes no arguments: its data store
+    // is given the same proxy that does not exist (macOS 14 and later).
+    #[cfg(target_os = "macos")]
+    let builder = if network_lock() {
+        builder.proxy_url(Url::parse(DEAD_PROXY).expect("a valid URL"))
+    } else {
+        builder
+    };
     #[cfg(feature = "test-harness")]
     let builder = harness::configure_window(builder);
     builder.build()?;
     Ok(())
 }
 
+/// The proxy the network lock points the webview at: the loopback discard
+/// port, where nothing listens.
+#[cfg(target_os = "macos")]
+const DEAD_PROXY: &str = "http://127.0.0.1:9";
+
 /// Always on, except that the test harness can switch it off to prove what
 /// the CSP stops on its own.
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "macos"))]
 fn network_lock() -> bool {
     #[cfg(feature = "test-harness")]
     let locked = harness::network_lock();

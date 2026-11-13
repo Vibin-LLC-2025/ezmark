@@ -311,7 +311,7 @@ fn assert_common(result: &Value) {
 fn origin_of(url: &str) -> &str {
     let after_scheme = url.find("://").map_or(0, |at| at + 3);
     let end = url[after_scheme..]
-        .find('/')
+        .find(['/', '#', '?'])
         .map_or(url.len(), |at| after_scheme + at);
     &url[..end]
 }
