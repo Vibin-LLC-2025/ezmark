@@ -187,7 +187,8 @@ Recorded as the plan requires, rather than absorbed silently.
   document, a file dragged onto the empty window opened, and the bundled app
   opened a file cold from Launch Services and from a drop on its icon in
   Finder. The `finder_open` test failed there: Finder refused the scripted
-  `open ... using` with "The application "(null)" does not have permission to
-  open" the file, although the same test passes on the `macos-15` runner. The
-  cause is not established, and the test is not changed here. The check against a listener on another machine
-  is still open. Details in `docs/m0-evidence.md` and `docs/measurements.md`.
+  `open ... using` with `The application "(null)" does not have permission
+  to open` the file, although the same test passes on the `macos-15` runner.
+  The cause is not established, and the test is not changed here. The check
+  against a listener on another machine is still open. Details in
+  `docs/m0-evidence.md` and `docs/measurements.md`.
