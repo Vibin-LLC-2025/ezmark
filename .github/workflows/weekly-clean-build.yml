@@ -1,0 +1,47 @@
+name: Weekly clean build
+
+# Catches rot in the one-command promise: a clean checkout, no cache, the
+# README's build on both platforms, then the full test and harness suite.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clean-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - name: The README command's build, timed, with no cache
+        shell: bash
+        run: |
+          start=$(date +%s)
+          cargo build --release
+          end=$(date +%s)
+          echo "clean release build: $((end - start)) s on ${ImageOS:-unknown} ${ImageVersion:-unknown}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Unit tests and security harness
+        run: cargo test --workspace --features ezmark/test-harness
+
+  # External links, which the pull-request check leaves alone so that someone
+  # else's server cannot fail a merge.
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Link check (external links)
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --no-progress --max-retries 3 README.md CONTRIBUTING.md ARCHITECTURE.md SECURITY.md CHANGELOG.md docs/adr docs/measurements.md docs/m0-evidence.md
+          fail: true

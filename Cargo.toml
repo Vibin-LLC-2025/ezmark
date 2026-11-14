@@ -1,0 +1,42 @@
+[workspace]
+members = ["crates/mdcore", "crates/app"]
+# `cargo run` at the repo root must pick the viewer binary (plan section 6).
+default-members = ["crates/app"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Vibin-LLC-2025/ezmark"
+publish = false
+
+[workspace.dependencies]
+mdcore = { path = "crates/mdcore" }
+comrak = { version = "0.59.0", default-features = false }
+ammonia = "4.2.5"
+percent-encoding = "2.3.2"
+tauri = "2.12.5"
+tauri-build = "2.7.4"
+tauri-plugin-single-instance = "2.5.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dunce = "1.0.5"
+rfd = { version = "0.18.0", default-features = false }
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+# Free: no effect on build time. It removes symbols on macOS; on Windows they
+# already live in a separate file. Link-time optimisation was measured and
+# left off (docs/measurements.md): 11% smaller for a 67% longer first build,
+# and the first build is the number a reader waits through.
+strip = true
+# `panic` stays at its default, unwind: a render that panics is caught and
+# shown as an error (crates/app/src/documents.rs).

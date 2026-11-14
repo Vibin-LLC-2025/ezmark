@@ -358,3 +358,39 @@ Verdict: AGREED. The uniqueness rule survived three attacks (duplicate substitut
 1. App name: decided 2026-10-27, **ezmark** (pronounced "easy mark"). Binary and command `ezmark`, crate `ezmark`, repo `<github-user>/ezmark`. Collision check on 2026-10-27: crates.io free; PyPI free; Homebrew free; winget free; GitHub repos with the name are unrelated (a jQuery plugin, watermark tools, attendance apps) except one dead markdown editor with zero stars last pushed 2020-02-05; the `ezmark` GitHub user handle is taken, so the repo lives under the author's account; npm has an abandoned `ezmark` 0.0.1 package, irrelevant since nothing is published to npm. Domains not checked.
 2. Remote images: decided 2026-10-27, out of v1. Revisit in v1.1 with its own ADR.
 3. Platform claims: decided 2026-10-27, the README uses "tested on" with the actual OS versions and hardware the author and external tester used. No floor is promised beyond what was tested.
+
+## 17. Amendments after the 2026-11-13 audit
+
+Sections 1 to 16 are the plan as agreed on 2026-10-26 and are left as written. An adversarial audit of the M0 code on 2026-11-13 found things the plan had wrong or had left heavier than needed. Where this section and an earlier one differ, this section governs. Each change is also recorded in the CHANGELOG, and the security ones in ADR 0003.
+
+### Milestones and process
+
+- **M0 closes on CI evidence.** The M0 row required a clean Windows 11 VM rehearsal, a clean macOS run, and a cold open by a Finder double-click. The author's machines cannot do the first, and the other two wait on access to a Mac. These three checks move to the External test milestone, which already exists for exactly this: clean machines, operated by someone other than the author. M0 is done when CI is green on both runners with the checks in `docs/m0-evidence.md`. The author's own Mac run, when it happens, is recorded there as extra evidence, not as a gate.
+- **Human-only checks are batched.** Every commit in M0 landed on one day, and the 17 days after it were spent waiting on checks only a person with the right hardware can do. From here on, such checks are collected into two fixed points, the end of M2 and the External test, and no coding milestone waits on one.
+- **`main` is protected.** Since 2026-11-13 a merge requires the six CI checks (lint, the dependency audit, and test and build on both runners), for administrators too, and force pushes are off. The installer build is not required.
+
+### Security contract (section 7)
+
+- **Links keep `http` as well as `https` and `mailto`.** Links to local development servers are everywhere in READMEs, and a link that silently became plain text was a rendering bug with no safety benefit: no link ever navigates the webview. Network-path forms (`//host/x`, `\\host\x`) are now dropped from links, since a browser would resolve them to another host.
+- **A stray `%` is a literal character.** Section 7 rejected any `%` that did not start a valid escape. Browsers treat it as a literal, and a file named `100%.png` is ordinary. Decoding still happens exactly once and the decoded string is still what gets inspected, so nothing can hide behind the leniency. Decoded bytes that are not UTF-8 are still rejected.
+- **The CSP is tighter than section 7 states.** `style-src` no longer allows inline styles and `img-src` no longer allows `data:`. Nothing needs either: table alignment arrives as an `align` attribute and syntect will emit classes.
+- **The network claim has a second layer on Windows, the network lock.** Measured on 2026-11-13: WebView2 sends the request for a navigation before the Rust handler can deny it, opens a connection for a `preconnect` hint that no CSP directive governs, and opens one for a frame before `frame-src` refuses its load. All three need markup the sanitizer removes, but the claim should not rest on one layer. The webview now starts with a proxy that does not exist, with no exception for loopback addresses, with host name resolution switched off, and with the browser's background requests disabled. macOS has no lock yet. Measured in CI on 2026-11-13, WKWebView does not send the request for a denied navigation, but opens two connections for preconnect hints and a frame; setting the same dead proxy on its data store was tried and made no reliable difference (ADR 0003).
+- **The webview's own menus and downloads are part of the contract.** Its built-in context menu on a link offers to save or open the link, which would fetch a URL the document chose. The menu is suppressed on links, and every download is refused in Rust.
+- **Document ids are namespaced.** Every `id` and `<a name>` a document supplies gets the prefix `user-content-`, as on GitHub, so a document cannot shadow the app's own elements; fragment links get the same prefix.
+- **A repository root that is too broad is not adopted.** If the enclosing `.git` is at a filesystem root, or at or above the user's home directory, the root is the document's own folder instead.
+- **Blocked images.** Section 7 has the placeholder for a remote image only. Every image that may not load (remote, outside the root, missing, refused) now gets one that says which. The "allow this folder?" dialog planned for links outside the root (section 7) will also be offered for images outside it, in M2.
+
+### Live reload and bounded execution (section 9)
+
+- **Asset URLs are keyed to the document's folder and root, not to the render.** Section 7 keyed asset access to the document generation. With live reload that would change every image URL on every save, so every image would reload and the differ would see each one as changed. The key now changes only when the folder or the root does.
+- **A nesting guard comes before the parser.** Parsing and sanitizing cost time proportional to the square of the nesting depth (measured: 20,000 nested elements in a 120 KB file took 2.8 s). Anything nested more than 512 deep is shown as plain text. The guard is best effort, not a proof; section 9's bounded render thread and M3's stop action remain the backstop.
+- **The "still rendering" notice is in M0, not M3**, shown after 700 ms rather than 10 s. The stop action stays in M3.
+- **Large-file mode: try one page first.** Sending the document in chunks on scroll demand collides with find, the outline, and reading-position anchors, none of which can see content that has not arrived. M3 first measures one page with `content-visibility: auto` on top-level blocks and no highlighting. Chunking is built only if that measurement fails on the 10 MB fixture.
+- **No vendored page differ unless measurement asks for one.** Reading position is restored from content hashes, not element identity, so idiomorph's benefit is limited to avoiding flicker and keeping a selection. M3 first builds a reconcile of top-level blocks by the same hashes (replace only blocks whose hash changed), which needs no third-party JavaScript and no `b-<hash>-<ordinal>` id scheme. idiomorph is vendored only if that proves inadequate.
+- **Orphaned render threads are decided after M1's performance fixtures.** With the nesting guard and fuzzing, a stuck parse may never occur in practice. If it can, a worker process that can actually be killed replaces the plan's two-orphan limit.
+
+### Testing (section 11)
+
+- **The enforcement corpus is three fixtures, not one**, with different pass conditions: resource loads (the CSP alone, with the network lock off), speculative connections (the network lock), and navigation (the click handler, `form-action`, and the Rust guard, with the lock covering the request the guard is too late to stop).
+- **No assertion waits a fixed time.** The harness waits for each expected event by name, and checks "nothing else happened" by provoking one more CSP violation and waiting for that one.
+- **Dependencies are audited in CI** with `cargo deny`: known vulnerabilities, licences, and sources.

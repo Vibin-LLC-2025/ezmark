@@ -1,0 +1,42 @@
+[package]
+name = "ezmark"
+description = "A fast, read-only markdown viewer for Windows and macOS."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+default-run = "ezmark"
+
+[[bin]]
+name = "ezmark"
+path = "src/main.rs"
+
+[features]
+# A release build only serves the embedded `ui/` assets when this is on, and
+# `--release` alone does not select it (plan section 6).
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+# Security harness plumbing (plan section 11). Never part of a release build;
+# CI checks the production artifact for its absence.
+test-harness = []
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+mdcore.workspace = true
+tauri.workspace = true
+tauri-plugin-single-instance.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+dunce.workspace = true
+
+# Native message boxes for the moments there is no window to say something in:
+# a failed start, and --help from a build that has no console.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+rfd.workspace = true
+
+[lints]
+workspace = true

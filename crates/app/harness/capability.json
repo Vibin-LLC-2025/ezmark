@@ -1,0 +1,6 @@
+{
+  "identifier": "test-harness",
+  "description": "Test-harness only, added at runtime. Never compiled into a release build.",
+  "windows": ["main"],
+  "permissions": ["allow-harness-report", "allow-harness-inject"]
+}

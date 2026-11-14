@@ -1,0 +1,45 @@
+# cargo-deny configuration: run `cargo deny check` from the repo root.
+# Checks known vulnerabilities, licences, banned or duplicate crates, and
+# where crates come from.
+
+[graph]
+# Only resolve dependencies for the platforms ezmark ships on, so Linux-only
+# crates (gtk, webkit2gtk and friends) do not affect the result.
+targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin", "x86_64-apple-darwin"]
+
+[advisories]
+# Vulnerabilities always fail the check. Yanked crates fail too.
+yanked = "deny"
+# Unmaintained notices only fail for our own crates; for dependencies they warn.
+unmaintained = "workspace"
+
+[licenses]
+# Every licence here is used by at least one crate in the graph.
+# MPL-2.0 (file-level copyleft) is needed by cssparser, selectors and
+# dtoa-short (via Tauri's dom_query and via ammonia) and option-ext (via
+# Tauri's dirs). No GPL or LGPL crates are present.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+]
+confidence-threshold = 0.9
+
+[bans]
+# Tauri pulls in some crates at two versions; report them but do not fail.
+multiple-versions = "warn"
+# A `*` version requirement fails, except for our own unpublished path crates
+# (mdcore is a workspace path dependency).
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+# Crates may only come from crates.io: no other registries, no git sources.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

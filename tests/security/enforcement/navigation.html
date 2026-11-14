@@ -1,0 +1,14 @@
+<!-- Enforcement corpus: every way a document could try to take the page
+     somewhere else. Injected unsanitized, bypassing mdcore. The harness
+     script clicks the probe elements, opens a window, submits the form, and
+     sets location. Pass condition: zero connections to the listener, the
+     page is still the app page, the app's click handler cancelled every
+     outbound click, and the Rust navigation guard recorded the denials. -->
+<meta http-equiv="refresh" content="0; url={{LOOPBACK}}/meta-refresh">
+<base href="{{LOOPBACK}}/base/">
+<p id="probe-text">Plain text.</p>
+<a id="probe-link" href="{{LOOPBACK}}/link-click" ping="{{LOOPBACK}}/ping">link</a>
+<a id="probe-new-window" href="{{LOOPBACK}}/new-window" target="_blank">new window</a>
+<a href="{{LOOPBACK}}/image-link"><img id="probe-image-in-link" alt="image in a link"></a>
+<a id="probe-fragment" href="#probe-text">in-page link</a>
+<form action="{{LOOPBACK}}/form" method="get"><button id="probe-submit" type="submit">submit</button></form>

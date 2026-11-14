@@ -1,0 +1,305 @@
+/* Baseline styling: enough for everything mdcore emits to read the way it
+   does on GitHub (tables, code, quotes, alerts, task lists, footnotes), in
+   the system's light or dark scheme. The tuned typography spec (17px, 1.6
+   line height, GitHub heading scale) and the theme switcher arrive in M2. */
+
+:root {
+  color-scheme: light dark;
+  --text: #1f2328;
+  --muted: #59636e;
+  --background: #ffffff;
+  --subtle: #f6f8fa;
+  --border: #d1d9e0;
+  --link: #0969da;
+  --note: #0969da;
+  --tip: #1a7f37;
+  --important: #8250df;
+  --warning: #9a6700;
+  --caution: #cf222e;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--background);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f0f6fc;
+    --muted: #9198a1;
+    --background: #0d1117;
+    --subtle: #151b23;
+    --border: #3d444d;
+    --link: #4493f8;
+    --note: #4493f8;
+    --tip: #3fb950;
+    --important: #ab7df8;
+    --warning: #d29922;
+    --caution: #f85149;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 32px;
+}
+
+#content {
+  max-width: 68ch;
+  margin: 0 auto;
+  overflow-wrap: break-word;
+}
+
+#content:focus {
+  outline: none;
+}
+
+/* Document elements */
+
+.document a {
+  color: var(--link);
+}
+
+.document h1,
+.document h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
+}
+
+.document h1,
+.document h2,
+.document h3,
+.document h4,
+.document h5,
+.document h6 {
+  margin: 1.5em 0 0.6em;
+  line-height: 1.25;
+}
+
+.document > :first-child {
+  margin-top: 0;
+}
+
+.document img {
+  max-width: 100%;
+}
+
+.document hr {
+  height: 2px;
+  border: 0;
+  background: var(--border);
+}
+
+.document blockquote {
+  margin: 1em 0;
+  padding: 0 1em;
+  color: var(--muted);
+  border-left: 4px solid var(--border);
+}
+
+.document code,
+.document kbd,
+.document pre {
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+.document code {
+  padding: 0.2em 0.4em;
+  background: var(--subtle);
+  border-radius: 6px;
+}
+
+.document pre {
+  padding: 16px;
+  overflow-x: auto;
+  line-height: 1.45;
+  background: var(--subtle);
+  border-radius: 6px;
+}
+
+.document pre code {
+  padding: 0;
+  font-size: inherit;
+  background: none;
+}
+
+.document pre.plain-text {
+  white-space: pre-wrap;
+}
+
+.document kbd {
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+
+.document table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.document th,
+.document td {
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+}
+
+.document tr:nth-child(2n) td {
+  background: var(--subtle);
+}
+
+/* Task lists */
+
+.document .contains-task-list {
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+.document .task-list-item-checkbox {
+  margin: 0 0.4em 0.2em -1.4em;
+  vertical-align: middle;
+}
+
+/* Alerts */
+
+.document .markdown-alert {
+  --accent: var(--note);
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--accent);
+}
+
+.document .markdown-alert > :first-child {
+  margin-top: 0;
+}
+
+.document .markdown-alert > :last-child {
+  margin-bottom: 0;
+}
+
+.document .markdown-alert-title {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.document .markdown-alert-tip {
+  --accent: var(--tip);
+}
+
+.document .markdown-alert-important {
+  --accent: var(--important);
+}
+
+.document .markdown-alert-warning {
+  --accent: var(--warning);
+}
+
+.document .markdown-alert-caution {
+  --accent: var(--caution);
+}
+
+/* Footnotes and heading anchors */
+
+.document .footnotes {
+  margin-top: 2em;
+  padding-top: 0.5em;
+  font-size: 0.85em;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+.document .footnote-ref a,
+.document .footnote-backref {
+  text-decoration: none;
+}
+
+.document a.anchor {
+  margin-left: 0.3em;
+  text-decoration: none;
+  opacity: 0;
+}
+
+.document a.anchor::after {
+  content: "#";
+}
+
+.document :is(h1, h2, h3, h4, h5, h6):hover a.anchor,
+.document a.anchor:focus {
+  opacity: 1;
+}
+
+.document :target {
+  scroll-margin-top: 16px;
+  outline: 2px solid var(--link);
+  outline-offset: 4px;
+}
+
+/* An image that may not load: a line of text saying why */
+
+.image-placeholder {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 0.5em;
+  align-items: baseline;
+  max-width: 100%;
+  padding: 2px 8px;
+  font-size: 0.8em;
+  color: var(--muted);
+  vertical-align: middle;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+.image-placeholder-label {
+  font-weight: 600;
+}
+
+.image-placeholder-detail {
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document .image-placeholder-detail {
+  padding: 0;
+  background: none;
+}
+
+/* Sentences from ezmark itself */
+
+.document-notice {
+  margin: 0 0 1.5em;
+  padding: 8px 12px;
+  font-size: 0.9em;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warning);
+  border-radius: 6px;
+}
+
+.notice {
+  margin-top: 20vh;
+  text-align: center;
+}
+
+.notice.error p {
+  overflow-wrap: anywhere;
+}
+
+#status {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+#status[hidden] {
+  display: none;
+}

@@ -1,0 +1,17 @@
+[package]
+name = "mdcore"
+description = "ezmark's markdown engine: parse, rewrite URLs, sanitize. No GUI dependency."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+comrak.workspace = true
+ammonia.workspace = true
+percent-encoding.workspace = true
+
+[lints]
+workspace = true
