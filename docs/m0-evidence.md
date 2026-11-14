@@ -19,18 +19,23 @@ on both runners in
 the same day: 12 real-app tests on each, the dependency audit, the Windows
 drag-and-drop, the Windows installer build, and both macOS cold opens.
 
+"Mac" means a real Mac, by hand, on 2026-11-13: a MacBook Air (Apple M3,
+8 GB) on macOS 26.6.2, at commit `3e751d6`. It is not a clean machine and the
+person at it was the author, so it does not replace the External test. The
+numbers are in [measurements.md](measurements.md).
+
 ## M0 row (plan section 10)
 
 | Obligation | Status | Evidence |
 |---|---|---|
 | Repo, license, ADRs | proven | Public repo; `LICENSE-MIT` and `LICENSE-APACHE`; `docs/adr/0001` to `0004` |
 | CI with format, clippy, test, release build on both OS runners | proven | CI: `lint`, `test` and `build` green on `windows-2025` and `macos-15`. App-crate clippy runs on the OS runners (CHANGELOG, 2026-10-27) |
-| `cargo run --release -- file.md` from the root, both platforms | Windows proven; macOS proven by proxy | Local: the literal command on a quoted path with spaces and Unicode opened the document. CI: the same production `--release` build compiles on both runners, and the harness launches the app from argv on both |
+| `cargo run --release -- file.md` from the root, both platforms | proven | Local: the literal command on a quoted path with spaces and Unicode opened the document. CI: the same production `--release` build compiles on both runners, and the harness launches the app from argv on both. Mac: `cargo run --release --locked -- docs/media/demo/demo.md` built in 55 s from an empty Cargo cache and opened the demo document, checked by eye: title `demo.md - ezmark`, the dark scheme, the local image shown, the remote badge replaced by "Remote image not loaded", task list, table, code block, and alert |
 | Clean Windows 11 VM rehearsal, disk use, first-build time | moved | No Hyper-V or Windows Sandbox on Windows 11 Home. Author-machine numbers stand in: 109 s first build, 361 MB `CARGO_HOME`, 1,295 MB `target/`. The External test milestone does this run on a clean machine with someone other than the author |
-| Clean macOS run | moved | The `macos-15` runner is the proxy. The author's own Mac run is recorded here when done; the External test does the clean-machine run |
+| Clean macOS run | moved | The `macos-15` runner is the proxy. The author's own Mac run was done on 2026-11-13 (the row above); the External test does the clean-machine run |
 | One real screenshot per OS | proven | [m0-windows.png](media/m0-windows.png) (local, production release build) and [m0-macos.png](media/m0-macos.png) (CI, `screencapture` on the runner) |
 | Asset protocol serves a relative image on both OSes | proven | `relative_image_is_served_through_the_asset_protocol` (local, 2026-11-13): three relative images load at 3x2, one of them named `100%.png`; an out-of-root image and a missing one each become a placeholder saying why; the handler refuses a crafted out-of-root reference and a previous asset scope. The out-of-root target is a valid PNG, so a decode failure cannot pass as a refusal; with the handler's root check removed, the test fails (local mutation check, 2026-10-27) |
-| macOS `RunEvent::Opened` buffering, cold Finder open of the bundled app | proven by proxy | CI: `cargo tauri build --bundles app` then `open -a ezmark.app file.md` on a cold start. Result: origin `opened-event`, `buffered: true`, document rendered. `open` uses the same Launch Services open-documents path as a Finder double-click. A second test asks Finder itself to open the file (`finder_open_is_buffered_and_replayed`), which is what a double-click does without the mouse; it passed on the `macos-15` runner on 2026-11-13 ([run 43523201535](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/43523201535)). It needs permission to control Finder, so a failure there would not fail the job. A real double-click by a person is moved to the External test |
+| macOS `RunEvent::Opened` buffering, cold Finder open of the bundled app | proven by proxy | CI: `cargo tauri build --bundles app` then `open -a ezmark.app file.md` on a cold start. Result: origin `opened-event`, `buffered: true`, document rendered. `open` uses the same Launch Services open-documents path as a Finder double-click. A second test asks Finder itself to open the file (`finder_open_is_buffered_and_replayed`), which is what a double-click does without the mouse; it passed on the `macos-15` runner on 2026-11-13 ([run 43523201535](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/43523201535)). It needs permission to control Finder, so a failure there would not fail the job. Mac: the `cold_open` test passed against the bundled harness app (origin `opened-event`, `buffered: true`, document rendered, no CSP reports, denied probe rejected). The `finder_open` test failed on this Mac (macOS 26.6.2; cause not established, since one machine cannot tell the macOS version from its own setup): `osascript` returned success, but Finder showed "The application "(null)" does not have permission to open "opened by finder.md."" and never started the app, with the file in the temporary folder and again with it in an ordinary one. Dragging the same file onto `ezmark.app` in Finder by hand did work, cold: origin `opened-event`, `buffered: true`, document rendered, window title `opened by finder.md - ezmark`. So Finder delivers the open and the buffering holds; what failed here is the scripted `open ... using` form the test relies on. A real double-click with ezmark chosen in Open With is moved to the External test |
 | Sanitized hostile fixture, both OSes | proven | `sanitized_hostile_fixture_runs_clean` (local, 2026-11-13): no scripts, inline handlers, script URLs, or frames in the DOM; no attribute naming a URL except a link's own target; every image replaced by a placeholder; a raw `<input>` forced to a disabled checkbox; ids prefixed; zero CSP reports; zero connections |
 | Enforcement fixture with an enforced CSP report naming the blocked URL and directive | proven | `enforcement_fixture_is_blocked_by_the_enforced_csp` requires a report whose `blockedURI` is exactly the fixture URL, with `img-src` and `enforce`. [Run 40461627894](https://github.com/Vibin-LLC-2025/ezmark/actions/runs/40461627894): WebView2 `{"blockedURI":"http://127.0.0.1:58927/enforcement-pixel.png","disposition":"enforce","effectiveDirective":"img-src","violatedDirective":"img-src"}`; WKWebView `{"blockedURI":"http://127.0.0.1:49187/enforcement-pixel.png","disposition":"enforce","effectiveDirective":"img-src","violatedDirective":"img-src"}` |
 | Enforcement corpus beyond one image (added 2026-11-13) | proven on Windows; on macOS proven except the speculative connections, where WKWebView opens two and there is no lock (see [measurements.md](measurements.md)) | Three more fixtures injected past the sanitizer. `enforcement_corpus_reaches_no_listener`, with the network lock off: 18 kinds of resource load and 8 script-driven requests, 27 enforced CSP reports, zero connections. `speculative_connections_reach_no_listener`: preconnect and dns-prefetch hints and a frame, zero connections with the network lock; without it WebView2 157 connects for the hints and for the frame (measured, see [measurements.md](measurements.md)). `navigation_attempts_never_leave_the_app_page`: link clicks, middle clicks, context menus, a `target=_blank` link, `window.open`, a form submit, a meta refresh, and `location`; the click handler cancels the clicks, `form-action` reports the form, the Rust guard denies the two navigations, the page stays, zero connections |
@@ -49,7 +54,7 @@ drag-and-drop, the Windows installer build, and both macOS cold opens.
 | Relative paths against the invoking working directory | proven | Same test, plus the forwarded second launch |
 | Missing file: clear error, not a blank window | proven | `missing_file_shows_a_clear_error`: "File not found: <path>" rendered |
 | No argument: empty-state window | proven | `no_argument_shows_the_empty_state` |
-| Drag-drop onto the empty-state window | proven on Windows; macOS open | `scripts/dragdrop-windows.ps1` performs a real OLE drag of a file with a space and a non-ASCII character in its name from a source window onto the app window, with real mouse input, and requires origin `drag-drop` and the document rendered. Passed 3 of 3 runs locally on 2026-11-13 and on the `windows-2025` runner in the same CI run. macOS: not yet checked |
+| Drag-drop onto the empty-state window | proven on Windows; macOS proven by hand | `scripts/dragdrop-windows.ps1` performs a real OLE drag of a file with a space and a non-ASCII character in its name from a source window onto the app window, with real mouse input, and requires origin `drag-drop` and the document rendered. Passed 3 of 3 runs locally on 2026-11-13 and on the `windows-2025` runner in the same CI run. Mac: a file named `drag me café.md` dragged from Finder onto the empty-state window of the production release build opened and rendered, checked by eye. No automated macOS check exists |
 | macOS open events buffered and replayed | proven by proxy | See the cold-open row above |
 | Second launch forwarded with argv and cwd | proven | `second_launch_is_forwarded_to_the_running_instance` passes on both runners (the plugin covers macOS too) |
 | Raw `cargo run` registers no file associations | proven by construction | No code path writes associations; only `cargo tauri build` bundles declare them |
@@ -73,10 +78,16 @@ M0 closes on the evidence above once CI is green on both runners for the
 commit that adds the post-audit changes (plan section 17). Still worth doing
 when a Mac is at hand, and recorded here when done:
 
-1. `cargo run --release -- docs/media/demo/demo.md` on a real Mac.
-2. Drag a file onto the empty window on macOS.
+1. `cargo run --release -- docs/media/demo/demo.md` on a real Mac. **Done
+   2026-11-13.**
+2. Drag a file onto the empty window on macOS. **Done 2026-11-13, by hand.**
 3. Build the app bundle and double-click a `.md` file in Finder with ezmark
    chosen in Open With (or run the `finder_open` test, which asks Finder to do
-   the same).
+   the same). **Partly done 2026-11-13:** the bundle builds, `cold_open`
+   passes, and a file dropped on the app icon in Finder opens cold. The
+   `finder_open` test failed on this Mac (macOS 26.6.2): Finder refused the
+   scripted open, cause not established. The Open With double-click was not
+   done.
 4. Run the `speculative` test against a listener on another machine, with
-   and without a proxy set on the webview's data store (ADR 0003).
+   and without a proxy set on the webview's data store (ADR 0003). **Open:**
+   it needs a second machine.

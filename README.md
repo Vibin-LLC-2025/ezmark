@@ -51,15 +51,17 @@ the file changes, or render differently from GitHub. ezmark aims to be:
 
 - Rust via [rustup](https://rustup.rs/).
 - Xcode Command Line Tools: `xcode-select --install`.
-- Tested on: macOS 15 on Apple Silicon, in CI. No other version is claimed yet.
+- Tested on: macOS 15 on Apple Silicon, in CI, and macOS 26.6 on an M3
+  MacBook Air, by hand. No other version is claimed yet.
 
 **Both:** git. Nothing else.
 
 ### One command
 
 The first build compiles about 250 crates. It took 109 seconds on a 12-core
-desktop and under 3 minutes on GitHub's Windows and macOS runners; expect
-several minutes on a laptop. Later builds take seconds.
+desktop, 55 seconds on an M3 MacBook Air, and under 3 minutes on GitHub's
+Windows and macOS runners; expect several minutes on an older laptop. Later
+builds take seconds.
 
 ```sh
 git clone https://github.com/Vibin-LLC-2025/ezmark.git

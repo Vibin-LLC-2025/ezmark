@@ -145,3 +145,24 @@ documents: no panic; no element outside the allowlist; no attribute outside
 it; every `src` an asset URL or a blocked marker; every `id` and `name`
 prefixed; every `href` a fragment, an allowed scheme, or a relative path;
 every `<input>` a disabled checkbox. The slowest render took 10.5 ms.
+
+## A real Mac, 2026-11-13
+
+MacBook Air (Mac15,13), Apple M3 (8 cores), 8 GB RAM, macOS 26.6.2, Xcode
+installed. Commit `3e751d6`. Not a clean machine: rustup was present with an
+older stable toolchain, but `CARGO_HOME` did not exist, so every crate was
+downloaded and compiled. Other applications were open throughout.
+
+| What | Result |
+|---|---|
+| `rustup toolchain install` for the pinned 1.99.1, minimal profile | 463 MB on disk |
+| First `cargo build --release --locked` (266 crates downloaded, 249 compiled) | 55 s |
+| Disk after that build | `CARGO_HOME` 214 MB, `target/` 887 MB |
+| Release binary `ezmark` (production features, stripped) | 8,347,968 bytes |
+| `cargo install tauri-cli --version 2.12.4 --locked` (optional second step) | 130 s |
+| `cargo tauri build --debug --bundles app --features test-harness` | 37 s; `ezmark.app` 43 MB (debug) |
+| Disk after all of the above and the two cold-open tests | `CARGO_HOME` 512 MB, `target/` 2.4 GB |
+
+This is the first run on a macOS newer than the `macos-15` runner. What was
+checked by hand, and the one test that failed (`finder_open`), is in
+[m0-evidence.md](m0-evidence.md). No network measurement was made here.
