@@ -14,6 +14,7 @@ mod documents;
 #[cfg(feature = "test-harness")]
 mod harness;
 mod launch;
+mod watch;
 
 use std::path::Path;
 
@@ -109,6 +110,7 @@ fn main() {
         .setup(move |app| {
             #[cfg(feature = "test-harness")]
             harness::setup(app)?;
+            start_watcher(app.handle());
             create_main_window(app)?;
             if let Some(path) = file {
                 documents::request_open(app.handle(), path, OpenOrigin::Argv);
@@ -124,6 +126,23 @@ fn main() {
             launch::tell(&launch::startup_failure(&error.to_string()), true);
             std::process::exit(1);
         }
+    }
+}
+
+/// Live reload: the watcher follows whichever file is on screen and asks for
+/// it to be read again when it changes. Without a watcher the viewer still
+/// works; it just does not notice changes.
+fn start_watcher<R: Runtime>(app: &AppHandle<R>) {
+    let handle = app.clone();
+    let started = watch::Watcher::start(move |signal| match signal {
+        watch::Signal::Changed(path) => documents::request_reload(&handle, path),
+        watch::Signal::Missing(path) => documents::report_missing(&handle, &path),
+    });
+    match started {
+        Ok(watcher) => {
+            app.manage(watcher);
+        }
+        Err(error) => eprintln!("ezmark: live reload is off, no watcher thread: {error}"),
     }
 }
 

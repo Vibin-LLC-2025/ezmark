@@ -167,6 +167,23 @@ impl OpenRecord {
     }
 }
 
+/// The render thread looked at the open file again. Printed as an event so a
+/// test can wait for a check that rendered nothing, which leaves no other
+/// trace.
+pub fn reload_checked(decision: &crate::documents::Reload) {
+    use crate::documents::Reload;
+    let outcome = match decision {
+        Reload::Stale => "stale",
+        Reload::Unchanged { .. } => "unchanged",
+        Reload::Changed { .. } => "changed",
+    };
+    println!(
+        "{EVENT_PREFIX}{}",
+        json!({ "type": "reload", "outcome": outcome })
+    );
+    let _ = std::io::stdout().flush();
+}
+
 /// Whether the webview gets the production network lock (see `main.rs`).
 #[cfg_attr(not(windows), allow(dead_code))]
 pub fn network_lock() -> bool {

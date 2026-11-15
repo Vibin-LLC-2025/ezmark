@@ -16,14 +16,23 @@
 //!   does, so a document cannot shadow the app's own elements. Fragment links
 //!   get the same prefix, so in-page jumps keep working without script.
 //!
-//! Highlighting, front matter, and image dimensions arrive in M1.
+//! - Every top-level block is preceded by an empty `<ezmark-block>` marker
+//!   carrying the block's content key (`blocks.rs`). The view reads the keys
+//!   for live reload and removes the markers.
+//!
+//! Fenced code is highlighted on the way (`highlight.rs`), and front matter
+//! becomes a collapsed block (`frontmatter.rs`); both go through the
+//! sanitizer with everything else.
 
 use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use crate::blocks;
 use crate::boundary::{RealFs, Rejection, split_reference, validate_reference};
+use crate::frontmatter;
 use crate::hex;
+use crate::highlight::{self, Highlighter};
 use crate::nesting::{self, MAX_DEPTH};
 
 /// Turns a validated raw image reference into the URL the webview requests it by.
@@ -86,7 +95,7 @@ pub fn render(source: &str, ctx: &RenderContext) -> Rendered {
     if nesting::quote_depth_exceeds(source, MAX_DEPTH) {
         return plain_text(source, ctx);
     }
-    let unsafe_html = comrak::markdown_to_html(source, &parser_options());
+    let unsafe_html = to_html(source);
     if nesting::html_depth_exceeds(&unsafe_html, MAX_DEPTH) {
         return plain_text(source, ctx);
     }
@@ -94,6 +103,23 @@ pub fn render(source: &str, ctx: &RenderContext) -> Rendered {
         html: sanitize(&unsafe_html, ctx),
         fallback: None,
     }
+}
+
+/// Parse, mark the top-level blocks, and write HTML with fenced code
+/// highlighted. Nothing here is safe to show yet.
+fn to_html(source: &str) -> String {
+    let options = parser_options();
+    let arena = comrak::Arena::new();
+    let root = comrak::parse_document(&arena, source, &options);
+    blocks::mark(&arena, root, source);
+
+    let highlighter = Highlighter::new();
+    let mut plugins = comrak::options::Plugins::default();
+    plugins.render.codefence_syntax_highlighter = Some(&highlighter);
+    let mut html = String::with_capacity(source.len() + source.len() / 2);
+    comrak::format_html_with_plugins(root, &options, &mut html, &plugins)
+        .expect("writing to a String cannot fail");
+    html
 }
 
 /// The source as escaped text in one `<pre>`, cut at [`PLAIN_TEXT_LIMIT`].
@@ -152,6 +178,8 @@ pub fn sanitize(html: &str, ctx: &RenderContext) -> String {
     let mut builder = ammonia::Builder::default();
     builder
         .add_tags(["input", "picture", "section", "source", "tfoot"])
+        .add_tags([blocks::MARKER_TAG])
+        .add_tag_attributes(blocks::MARKER_TAG, [blocks::MARKER_ATTRIBUTE])
         .add_generic_attributes(["id", "class", "aria-label", "aria-hidden"])
         .add_tag_attributes("a", ["name"])
         .add_tag_attributes("img", ["srcset"])
@@ -196,6 +224,9 @@ fn attribute_policy<'u>(
         // Links never navigate the webview: the frontend intercepts every click.
         (_, "href") => link_target(value),
         ("a", "name") => Some(prefixed(value)),
+        (blocks::MARKER_TAG, blocks::MARKER_ATTRIBUTE) => {
+            blocks::is_key(value).then_some(Cow::Borrowed(value))
+        }
         (_, "class") => allowed_classes(element, value),
         (_, "align") => is_alignment(value).then_some(Cow::Borrowed(value)),
         _ => Some(Cow::Borrowed(value)),
@@ -366,7 +397,9 @@ fn is_allowed_class(element: &str, class: &str) -> bool {
         "section" => class == "footnotes",
         "a" => matches!(class, "anchor" | "footnote-backref"),
         "pre" => class == "plain-text",
-        // The language of a fenced code block, for highlighting in M1.
+        "details" => class == frontmatter::CLASS,
+        "span" => highlight::is_highlight_class(class),
+        // The language of a fenced code block.
         "code" => class.strip_prefix("language-").is_some_and(|language| {
             (1..=40).contains(&language.len())
                 && language
@@ -435,6 +468,86 @@ mod tests {
         assert!(html.contains(">Title<"), "{html}");
         assert!(html.contains("<table>"), "{html}");
         assert!(html.contains("<del>gone</del>"), "{html}");
+    }
+
+    #[test]
+    fn fenced_code_is_highlighted_with_classes_that_survive_the_sanitizer() {
+        let html =
+            html("```rust\nfn main() { let s = \"<b>\"; }\n```\n\n```nonsense\na < b\n```\n");
+        assert!(
+            html.contains(
+                "<pre><code class=\"language-rust\"><span class=\"hl-keyword\">fn </span>"
+            ),
+            "{html}"
+        );
+        assert!(html.contains("hl-keyword"), "{html}");
+        assert!(html.contains("&lt;b&gt;"), "{html}");
+        assert!(
+            html.contains("<pre><code class=\"language-nonsense\">a &lt; b\n</code></pre>"),
+            "an unknown language stays plain: {html}"
+        );
+        assert!(!html.contains("style="), "{html}");
+    }
+
+    #[test]
+    fn a_document_cannot_use_highlight_classes_for_anything_else() {
+        let html = html(
+            "<span class=\"hl-keyword notice hl-x;y hl-\">a</span>\n\n\
+             <div class=\"hl-keyword\">b</div>\n\n<span style=\"color:red\">c</span>\n",
+        );
+        assert!(
+            html.contains("<span class=\"hl-keyword\">a</span>"),
+            "{html}"
+        );
+        assert!(html.contains("<div>b</div>"), "{html}");
+        assert!(html.contains("<span>c</span>"), "{html}");
+    }
+
+    #[test]
+    fn front_matter_is_shown_collapsed_and_sanitized() {
+        let html = html("---\ntitle: <script>alert(1)</script>\ntags:\n  - a\n---\n\n# Body\n");
+        assert!(
+            html.contains("<details class=\"front-matter\"><summary>Front matter</summary>"),
+            "{html}"
+        );
+        assert!(html.contains("<th scope=\"row\">title</th>"), "{html}");
+        assert!(
+            html.contains("&lt;script&gt;alert(1)&lt;/script&gt;"),
+            "{html}"
+        );
+        assert!(!html.contains("<script"), "{html}");
+        assert!(html.contains(">Body<"), "{html}");
+        assert!(
+            !html.contains("<hr"),
+            "the delimiters are not rules: {html}"
+        );
+    }
+
+    #[test]
+    fn top_level_blocks_are_preceded_by_key_markers() {
+        let rendered = html("# One\n\nSame.\n\nSame.\n\n- item\n");
+        let keys: Vec<&str> = rendered
+            .split("<ezmark-block key=\"")
+            .skip(1)
+            .map(|rest| &rest[..16])
+            .collect();
+        assert_eq!(keys.len(), 4, "{rendered}");
+        assert_eq!(keys[1], keys[2], "identical source, identical key");
+        assert_ne!(keys[0], keys[1]);
+        assert!(
+            rendered.contains("\"></ezmark-block>\n<h1 id=\"user-content-one\">"),
+            "{rendered}"
+        );
+
+        // A document's own markers survive only in the shape of a key, and
+        // nothing else about them does.
+        let forged = html(
+            "<ezmark-block key=\"not-a-key\" onclick=\"x()\" id=\"content\">text</ezmark-block>\n",
+        );
+        assert!(forged.contains(">text</ezmark-block>"), "{forged}");
+        for dropped in ["not-a-key", "onclick", "id=\"content\""] {
+            assert!(!forged.contains(dropped), "{dropped} in {forged}");
+        }
     }
 
     /// The extended allowlist, feature by feature: what GitHub's features need

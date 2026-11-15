@@ -24,6 +24,9 @@ cargo clippy --workspace --all-targets --features ezmark/test-harness -- -D warn
 npm ci && npm run typecheck                               # contributor-only: JSDoc type-check of ui/
 npm test                                                  # contributor-only: ui/ against fake Tauri and DOM globals
 cargo deny check                                          # optional: dependency audit (cargo install cargo-deny)
+EZMARK_BLESS=1 cargo test -p mdcore --test conformance    # accept a change in pipeline output, then read the diff (tests/pipeline/README.md)
+cargo run -p mdcore --example html -- file.md             # print the HTML the engine makes of a file
+cargo run --release -p mdcore --example timing            # stage timings for docs/measurements.md
 ```
 
 Clippy runs twice because harness code is compiled only with the feature.

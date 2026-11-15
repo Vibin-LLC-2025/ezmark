@@ -303,3 +303,40 @@ body {
 #status[hidden] {
   display: none;
 }
+
+/* Front matter: a closed block above the document (mdcore frontmatter.rs) */
+
+.document details.front-matter {
+  margin: 0 0 1.5em;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  color: var(--muted);
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.document details.front-matter summary {
+  cursor: pointer;
+}
+
+.document details.front-matter table {
+  margin: 8px 0 4px;
+}
+
+.document details.front-matter th {
+  font-weight: 600;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.document details.front-matter :is(th, td) {
+  background: var(--background);
+}
+
+.document details.front-matter pre {
+  margin: 0;
+  padding: 0;
+  background: none;
+}

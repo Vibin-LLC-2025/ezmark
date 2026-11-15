@@ -1,0 +1,6016 @@
+Pipeline output for the examples of CommonMark 0.31.2.
+Written by crates/mdcore/tests/conformance.rs; do not edit by hand.
+Regenerate with EZMARK_BLESS=1 cargo test -p mdcore --test conformance
+and read the diff. tests/pipeline/README.md explains the differences.
+A tab is shown as → in the markdown, as in the spec.
+
+652 examples: 354 same as the spec once block markers are set aside, 298 differ.
+
+======== example 1: Tabs (same as the spec)
+→foo→baz→→bim
+-------- pipeline output
+<ezmark-block key="8df44c3b1fb6c8be"></ezmark-block>
+<pre><code>foo	baz		bim
+</code></pre>
+
+======== example 2: Tabs (same as the spec)
+  →foo→baz→→bim
+-------- pipeline output
+<ezmark-block key="2c97f6b4cec3d8e6"></ezmark-block>
+<pre><code>foo	baz		bim
+</code></pre>
+
+======== example 3: Tabs (same as the spec)
+    a→a
+    ὐ→a
+-------- pipeline output
+<ezmark-block key="ca4ae17c4d0d7a2c"></ezmark-block>
+<pre><code>a	a
+ὐ	a
+</code></pre>
+
+======== example 4: Tabs (same as the spec)
+  - foo
+
+→bar
+-------- pipeline output
+<ezmark-block key="7bc7b45718737198"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<p>bar</p>
+</li>
+</ul>
+
+======== example 5: Tabs (same as the spec)
+- foo
+
+→→bar
+-------- pipeline output
+<ezmark-block key="4ebf444d51ba7293"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<pre><code>  bar
+</code></pre>
+</li>
+</ul>
+
+======== example 6: Tabs (same as the spec)
+>→→foo
+-------- pipeline output
+<ezmark-block key="2e76dfeb5c28a3cd"></ezmark-block>
+<blockquote>
+<pre><code>  foo
+</code></pre>
+</blockquote>
+
+======== example 7: Tabs (same as the spec)
+-→→foo
+-------- pipeline output
+<ezmark-block key="ec395e47dbfd16fe"></ezmark-block>
+<ul>
+<li>
+<pre><code>  foo
+</code></pre>
+</li>
+</ul>
+
+======== example 8: Tabs (same as the spec)
+    foo
+→bar
+-------- pipeline output
+<ezmark-block key="fe61ca695bf64b5b"></ezmark-block>
+<pre><code>foo
+bar
+</code></pre>
+
+======== example 9: Tabs (same as the spec)
+ - foo
+   - bar
+→ - baz
+-------- pipeline output
+<ezmark-block key="6a80cfd2bacb61a9"></ezmark-block>
+<ul>
+<li>foo
+<ul>
+<li>bar
+<ul>
+<li>baz</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+======== example 10: Tabs (differs from the spec)
+#→Foo
+-------- pipeline output
+<ezmark-block key="03c34cfde2da7ce3"></ezmark-block>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 11: Tabs (differs from the spec)
+*→*→*→
+-------- pipeline output
+<ezmark-block key="0f39bbe7d81ed821"></ezmark-block>
+<hr>
+
+======== example 12: Backslash escapes (differs from the spec)
+\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~
+-------- pipeline output
+<ezmark-block key="630f5dd9d02ffcf3"></ezmark-block>
+<p>!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~</p>
+
+======== example 13: Backslash escapes (same as the spec)
+\→\A\a\ \3\φ\«
+-------- pipeline output
+<ezmark-block key="0f8f917cc806168b"></ezmark-block>
+<p>\	\A\a\ \3\φ\«</p>
+
+======== example 14: Backslash escapes (differs from the spec)
+\*not emphasized*
+\<br/> not a tag
+\[not a link](/foo)
+\`not code`
+1\. not a list
+\* not a list
+\# not a heading
+\[foo]: /url "not a reference"
+\&ouml; not a character entity
+-------- pipeline output
+<ezmark-block key="b64979fe541e640c"></ezmark-block>
+<p>*not emphasized*
+&lt;br/&gt; not a tag
+[not a link](/foo)
+`not code`
+1. not a list
+* not a list
+# not a heading
+[foo]: /url "not a reference"
+&amp;ouml; not a character entity</p>
+
+======== example 15: Backslash escapes (same as the spec)
+\\*emphasis*
+-------- pipeline output
+<ezmark-block key="be2626e2e4f7480f"></ezmark-block>
+<p>\<em>emphasis</em></p>
+
+======== example 16: Backslash escapes (differs from the spec)
+foo\
+bar
+-------- pipeline output
+<ezmark-block key="8674d8df19c1e02e"></ezmark-block>
+<p>foo<br>
+bar</p>
+
+======== example 17: Backslash escapes (same as the spec)
+`` \[\` ``
+-------- pipeline output
+<ezmark-block key="47b9c81838e957c6"></ezmark-block>
+<p><code>\[\`</code></p>
+
+======== example 18: Backslash escapes (same as the spec)
+    \[\]
+-------- pipeline output
+<ezmark-block key="a2d75a68dd8b899b"></ezmark-block>
+<pre><code>\[\]
+</code></pre>
+
+======== example 19: Backslash escapes (same as the spec)
+~~~
+\[\]
+~~~
+-------- pipeline output
+<ezmark-block key="fc750fcf22943913"></ezmark-block>
+<pre><code>\[\]
+</code></pre>
+
+======== example 20: Backslash escapes (differs from the spec)
+<https://example.com?find=\*>
+-------- pipeline output
+<ezmark-block key="b5db13f60806d634"></ezmark-block>
+<p><a href="https://example.com?find=%5C*" rel="noopener noreferrer">https://example.com?find=\*</a></p>
+
+======== example 21: Backslash escapes (differs from the spec)
+<a href="/bar\/)">
+-------- pipeline output
+<ezmark-block key="56afb7737d46e4b6"></ezmark-block>
+<a href="/bar\/)" rel="noopener noreferrer">
+</a>
+
+======== example 22: Backslash escapes (differs from the spec)
+[foo](/bar\* "ti\*tle")
+-------- pipeline output
+<ezmark-block key="02e4cf98756563d2"></ezmark-block>
+<p><a href="/bar*" title="ti*tle" rel="noopener noreferrer">foo</a></p>
+
+======== example 23: Backslash escapes (differs from the spec)
+[foo]
+
+[foo]: /bar\* "ti\*tle"
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/bar*" title="ti*tle" rel="noopener noreferrer">foo</a></p>
+
+======== example 24: Backslash escapes (same as the spec)
+``` foo\+bar
+foo
+```
+-------- pipeline output
+<ezmark-block key="e6f0dc47b839646b"></ezmark-block>
+<pre><code class="language-foo+bar">foo
+</code></pre>
+
+======== example 25: Entity and numeric character references (differs from the spec)
+&nbsp; &amp; &copy; &AElig; &Dcaron;
+&frac34; &HilbertSpace; &DifferentialD;
+&ClockwiseContourIntegral; &ngE;
+-------- pipeline output
+<ezmark-block key="e6eef19dcd64e2b2"></ezmark-block>
+<p>&nbsp; &amp; © Æ Ď
+¾ ℋ ⅆ
+∲ ≧̸</p>
+
+======== example 26: Entity and numeric character references (same as the spec)
+&#35; &#1234; &#992; &#0;
+-------- pipeline output
+<ezmark-block key="50d1e0ef20a326c3"></ezmark-block>
+<p># Ӓ Ϡ �</p>
+
+======== example 27: Entity and numeric character references (differs from the spec)
+&#X22; &#XD06; &#xcab;
+-------- pipeline output
+<ezmark-block key="99d4ceb5414a5783"></ezmark-block>
+<p>" ആ ಫ</p>
+
+======== example 28: Entity and numeric character references (same as the spec)
+&nbsp &x; &#; &#x;
+&#87654321;
+&#abcdef0;
+&ThisIsNotDefined; &hi?;
+-------- pipeline output
+<ezmark-block key="b6bb1e94c6dd3e2a"></ezmark-block>
+<p>&amp;nbsp &amp;x; &amp;#; &amp;#x;
+&amp;#87654321;
+&amp;#abcdef0;
+&amp;ThisIsNotDefined; &amp;hi?;</p>
+
+======== example 29: Entity and numeric character references (same as the spec)
+&copy
+-------- pipeline output
+<ezmark-block key="4ec29b5c4f1b7fc0"></ezmark-block>
+<p>&amp;copy</p>
+
+======== example 30: Entity and numeric character references (same as the spec)
+&MadeUpEntity;
+-------- pipeline output
+<ezmark-block key="556e85e1745ca44f"></ezmark-block>
+<p>&amp;MadeUpEntity;</p>
+
+======== example 31: Entity and numeric character references (differs from the spec)
+<a href="&ouml;&ouml;.html">
+-------- pipeline output
+<ezmark-block key="6ba22024db477197"></ezmark-block>
+<a href="öö.html" rel="noopener noreferrer">
+</a>
+
+======== example 32: Entity and numeric character references (differs from the spec)
+[foo](/f&ouml;&ouml; "f&ouml;&ouml;")
+-------- pipeline output
+<ezmark-block key="4b28ef217b58c7ef"></ezmark-block>
+<p><a href="/f%C3%B6%C3%B6" title="föö" rel="noopener noreferrer">foo</a></p>
+
+======== example 33: Entity and numeric character references (differs from the spec)
+[foo]
+
+[foo]: /f&ouml;&ouml; "f&ouml;&ouml;"
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/f%C3%B6%C3%B6" title="föö" rel="noopener noreferrer">foo</a></p>
+
+======== example 34: Entity and numeric character references (differs from the spec)
+``` f&ouml;&ouml;
+foo
+```
+-------- pipeline output
+<ezmark-block key="ab8e195c353f1341"></ezmark-block>
+<pre><code>foo
+</code></pre>
+
+======== example 35: Entity and numeric character references (same as the spec)
+`f&ouml;&ouml;`
+-------- pipeline output
+<ezmark-block key="b3f926a96f384801"></ezmark-block>
+<p><code>f&amp;ouml;&amp;ouml;</code></p>
+
+======== example 36: Entity and numeric character references (same as the spec)
+    f&ouml;f&ouml;
+-------- pipeline output
+<ezmark-block key="3d1f2e671335f3a5"></ezmark-block>
+<pre><code>f&amp;ouml;f&amp;ouml;
+</code></pre>
+
+======== example 37: Entity and numeric character references (same as the spec)
+&#42;foo&#42;
+*foo*
+-------- pipeline output
+<ezmark-block key="d2f15d6855abac2d"></ezmark-block>
+<p>*foo*
+<em>foo</em></p>
+
+======== example 38: Entity and numeric character references (same as the spec)
+&#42; foo
+
+* foo
+-------- pipeline output
+<ezmark-block key="c10c75b4063b93a1"></ezmark-block>
+<p>* foo</p>
+<ezmark-block key="d9a6042952edbae1"></ezmark-block>
+<ul>
+<li>foo</li>
+</ul>
+
+======== example 39: Entity and numeric character references (same as the spec)
+foo&#10;&#10;bar
+-------- pipeline output
+<ezmark-block key="8f793156870818c6"></ezmark-block>
+<p>foo
+
+bar</p>
+
+======== example 40: Entity and numeric character references (same as the spec)
+&#9;foo
+-------- pipeline output
+<ezmark-block key="ad0ad5d15611095a"></ezmark-block>
+<p>	foo</p>
+
+======== example 41: Entity and numeric character references (differs from the spec)
+[a](url &quot;tit&quot;)
+-------- pipeline output
+<ezmark-block key="4168786e4c8589f7"></ezmark-block>
+<p>[a](url "tit")</p>
+
+======== example 42: Precedence (same as the spec)
+- `one
+- two`
+-------- pipeline output
+<ezmark-block key="f8e2052846ff0c8d"></ezmark-block>
+<ul>
+<li>`one</li>
+<li>two`</li>
+</ul>
+
+======== example 43: Thematic breaks (differs from the spec)
+***
+---
+___
+-------- pipeline output
+<ezmark-block key="1a3b8617ffb1dc4d"></ezmark-block>
+<hr>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+<ezmark-block key="b8c3741a0c665b74"></ezmark-block>
+<hr>
+
+======== example 44: Thematic breaks (same as the spec)
++++
+-------- pipeline output
+<ezmark-block key="12615417fb79f5e8"></ezmark-block>
+<p>+++</p>
+
+======== example 45: Thematic breaks (same as the spec)
+===
+-------- pipeline output
+<ezmark-block key="694ae4182cc96ab6"></ezmark-block>
+<p>===</p>
+
+======== example 46: Thematic breaks (same as the spec)
+--
+**
+__
+-------- pipeline output
+<ezmark-block key="3943d983005ee0dd"></ezmark-block>
+<p>--
+**
+__</p>
+
+======== example 47: Thematic breaks (differs from the spec)
+ ***
+  ***
+   ***
+-------- pipeline output
+<ezmark-block key="e172e174088d2daf"></ezmark-block>
+<hr>
+<ezmark-block key="06173d7df9d77755"></ezmark-block>
+<hr>
+<ezmark-block key="f8b69c42b4e4c767"></ezmark-block>
+<hr>
+
+======== example 48: Thematic breaks (same as the spec)
+    ***
+-------- pipeline output
+<ezmark-block key="e4d672276e40cdbd"></ezmark-block>
+<pre><code>***
+</code></pre>
+
+======== example 49: Thematic breaks (same as the spec)
+Foo
+    ***
+-------- pipeline output
+<ezmark-block key="ce75af4a0dc1af07"></ezmark-block>
+<p>Foo
+***</p>
+
+======== example 50: Thematic breaks (differs from the spec)
+_____________________________________
+-------- pipeline output
+<ezmark-block key="a53bb55db17ec66a"></ezmark-block>
+<hr>
+
+======== example 51: Thematic breaks (differs from the spec)
+ - - -
+-------- pipeline output
+<ezmark-block key="8fe74b30084a80be"></ezmark-block>
+<hr>
+
+======== example 52: Thematic breaks (differs from the spec)
+ **  * ** * ** * **
+-------- pipeline output
+<ezmark-block key="228e17010c485fe5"></ezmark-block>
+<hr>
+
+======== example 53: Thematic breaks (differs from the spec)
+-     -      -      -
+-------- pipeline output
+<ezmark-block key="338c8c1655a4bb19"></ezmark-block>
+<hr>
+
+======== example 54: Thematic breaks (differs from the spec)
+- - - -    
+-------- pipeline output
+<ezmark-block key="6f631fec6ac2b217"></ezmark-block>
+<hr>
+
+======== example 55: Thematic breaks (same as the spec)
+_ _ _ _ a
+
+a------
+
+---a---
+-------- pipeline output
+<ezmark-block key="98c9650202749d5c"></ezmark-block>
+<p>_ _ _ _ a</p>
+<ezmark-block key="bad39f16667c7376"></ezmark-block>
+<p>a------</p>
+<ezmark-block key="da912e53eda18266"></ezmark-block>
+<p>---a---</p>
+
+======== example 56: Thematic breaks (same as the spec)
+ *-*
+-------- pipeline output
+<ezmark-block key="e168bf7408849f64"></ezmark-block>
+<p><em>-</em></p>
+
+======== example 57: Thematic breaks (differs from the spec)
+- foo
+***
+- bar
+-------- pipeline output
+<ezmark-block key="be9fea14755b84d0"></ezmark-block>
+<ul>
+<li>foo</li>
+</ul>
+<ezmark-block key="1a3b8617ffb1dc4d"></ezmark-block>
+<hr>
+<ezmark-block key="9b344314611304ad"></ezmark-block>
+<ul>
+<li>bar</li>
+</ul>
+
+======== example 58: Thematic breaks (differs from the spec)
+Foo
+***
+bar
+-------- pipeline output
+<ezmark-block key="f2bb95199c92e1d7"></ezmark-block>
+<p>Foo</p>
+<ezmark-block key="1a3b8617ffb1dc4d"></ezmark-block>
+<hr>
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 59: Thematic breaks (differs from the spec)
+Foo
+---
+bar
+-------- pipeline output
+<ezmark-block key="4f4199af39c56f0c"></ezmark-block>
+<h2 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 60: Thematic breaks (differs from the spec)
+* Foo
+* * *
+* Bar
+-------- pipeline output
+<ezmark-block key="c39de428b5366181"></ezmark-block>
+<ul>
+<li>Foo</li>
+</ul>
+<ezmark-block key="171af52853b4e24d"></ezmark-block>
+<hr>
+<ezmark-block key="e7d47b28ca2a79d8"></ezmark-block>
+<ul>
+<li>Bar</li>
+</ul>
+
+======== example 61: Thematic breaks (differs from the spec)
+- Foo
+- * * *
+-------- pipeline output
+<ezmark-block key="24a57c05774b3c93"></ezmark-block>
+<ul>
+<li>Foo</li>
+<li>
+<hr>
+</li>
+</ul>
+
+======== example 62: ATX headings (differs from the spec)
+# foo
+## foo
+### foo
+#### foo
+##### foo
+###### foo
+-------- pipeline output
+<ezmark-block key="679519aaeb357806"></ezmark-block>
+<h1 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="9fb8d449ecc85eeb"></ezmark-block>
+<h2 id="user-content-foo-1">foo<a href="#user-content-foo-1" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="ae9ef100800c8778"></ezmark-block>
+<h3 id="user-content-foo-2">foo<a href="#user-content-foo-2" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h3>
+<ezmark-block key="de26e7114e5e4795"></ezmark-block>
+<h4 id="user-content-foo-3">foo<a href="#user-content-foo-3" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h4>
+<ezmark-block key="af655c978e3f531a"></ezmark-block>
+<h5 id="user-content-foo-4">foo<a href="#user-content-foo-4" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h5>
+<ezmark-block key="80592e5fb187c5e7"></ezmark-block>
+<h6 id="user-content-foo-5">foo<a href="#user-content-foo-5" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h6>
+
+======== example 63: ATX headings (same as the spec)
+####### foo
+-------- pipeline output
+<ezmark-block key="e7c84a58366f835c"></ezmark-block>
+<p>####### foo</p>
+
+======== example 64: ATX headings (same as the spec)
+#5 bolt
+
+#hashtag
+-------- pipeline output
+<ezmark-block key="f765e27322dbced8"></ezmark-block>
+<p>#5 bolt</p>
+<ezmark-block key="b3fe8316207a77b6"></ezmark-block>
+<p>#hashtag</p>
+
+======== example 65: ATX headings (same as the spec)
+\## foo
+-------- pipeline output
+<ezmark-block key="94cb8b5fbd45bded"></ezmark-block>
+<p>## foo</p>
+
+======== example 66: ATX headings (differs from the spec)
+# foo *bar* \*baz\*
+-------- pipeline output
+<ezmark-block key="67eb5da4f70d5224"></ezmark-block>
+<h1 id="user-content-foo-bar-baz">foo <em>bar</em> *baz*<a href="#user-content-foo-bar-baz" aria-label="Link to heading 'foo bar *baz*'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 67: ATX headings (differs from the spec)
+#                  foo                     
+-------- pipeline output
+<ezmark-block key="5f125bb2d5d078c2"></ezmark-block>
+<h1 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 68: ATX headings (differs from the spec)
+ ### foo
+  ## foo
+   # foo
+-------- pipeline output
+<ezmark-block key="50316feeae5245f6"></ezmark-block>
+<h3 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h3>
+<ezmark-block key="3b8e57b6df784e53"></ezmark-block>
+<h2 id="user-content-foo-1">foo<a href="#user-content-foo-1" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="abe81141ea83651c"></ezmark-block>
+<h1 id="user-content-foo-2">foo<a href="#user-content-foo-2" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 69: ATX headings (same as the spec)
+    # foo
+-------- pipeline output
+<ezmark-block key="da57944a430f9976"></ezmark-block>
+<pre><code># foo
+</code></pre>
+
+======== example 70: ATX headings (same as the spec)
+foo
+    # bar
+-------- pipeline output
+<ezmark-block key="1d35761f8902ad51"></ezmark-block>
+<p>foo
+# bar</p>
+
+======== example 71: ATX headings (differs from the spec)
+## foo ##
+  ###   bar    ###
+-------- pipeline output
+<ezmark-block key="faa43e98acb86e4f"></ezmark-block>
+<h2 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="7e11581aaf02e848"></ezmark-block>
+<h3 id="user-content-bar">bar<a href="#user-content-bar" aria-label="Link to heading 'bar'" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 72: ATX headings (differs from the spec)
+# foo ##################################
+##### foo ##
+-------- pipeline output
+<ezmark-block key="d0efd7989f3d1980"></ezmark-block>
+<h1 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="d43da5cfda8f6a3c"></ezmark-block>
+<h5 id="user-content-foo-1">foo<a href="#user-content-foo-1" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h5>
+
+======== example 73: ATX headings (differs from the spec)
+### foo ###     
+-------- pipeline output
+<ezmark-block key="2000c821fbcc2a6f"></ezmark-block>
+<h3 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 74: ATX headings (differs from the spec)
+### foo ### b
+-------- pipeline output
+<ezmark-block key="39a2c34fb1d50d6d"></ezmark-block>
+<h3 id="user-content-foo--b">foo ### b<a href="#user-content-foo--b" aria-label="Link to heading 'foo ### b'" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 75: ATX headings (differs from the spec)
+# foo#
+-------- pipeline output
+<ezmark-block key="37d2c26dabdb26df"></ezmark-block>
+<h1 id="user-content-foo">foo#<a href="#user-content-foo" aria-label="Link to heading 'foo#'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 76: ATX headings (differs from the spec)
+### foo \###
+## foo #\##
+# foo \#
+-------- pipeline output
+<ezmark-block key="b39f2f137a5d9b6b"></ezmark-block>
+<h3 id="user-content-foo-">foo ###<a href="#user-content-foo-" aria-label="Link to heading 'foo ###'" class="anchor" rel="noopener noreferrer"></a></h3>
+<ezmark-block key="6c9ac90a02a12f2c"></ezmark-block>
+<h2 id="user-content-foo--1">foo ###<a href="#user-content-foo--1" aria-label="Link to heading 'foo ###'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="279316aa2ce467ab"></ezmark-block>
+<h1 id="user-content-foo--2">foo #<a href="#user-content-foo--2" aria-label="Link to heading 'foo #'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 77: ATX headings (differs from the spec)
+****
+## foo
+****
+-------- pipeline output
+<ezmark-block key="450141c77b398305"></ezmark-block>
+<hr>
+<ezmark-block key="9fb8d449ecc85eeb"></ezmark-block>
+<h2 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="450141c77b398305"></ezmark-block>
+<hr>
+
+======== example 78: ATX headings (differs from the spec)
+Foo bar
+# baz
+Bar foo
+-------- pipeline output
+<ezmark-block key="85560a87f5b69d2a"></ezmark-block>
+<p>Foo bar</p>
+<ezmark-block key="8bbdd2ab001d8cc7"></ezmark-block>
+<h1 id="user-content-baz">baz<a href="#user-content-baz" aria-label="Link to heading 'baz'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="e3bb67a533956cee"></ezmark-block>
+<p>Bar foo</p>
+
+======== example 79: ATX headings (differs from the spec)
+## 
+#
+### ###
+-------- pipeline output
+<ezmark-block key="07c90d07b491b5e3"></ezmark-block>
+<h2 id="user-content-"><a href="#" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="af639e4c86018332"></ezmark-block>
+<h1 id="user-content--1"><a href="#user-content--1" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="6bd501ff38a9fef7"></ezmark-block>
+<h3 id="user-content--2"><a href="#user-content--2" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 80: Setext headings (differs from the spec)
+Foo *bar*
+=========
+
+Foo *bar*
+---------
+-------- pipeline output
+<ezmark-block key="e991077b8fb078d9"></ezmark-block>
+<h1 id="user-content-foo-bar">Foo <em>bar</em><a href="#user-content-foo-bar" aria-label="Link to heading 'Foo bar'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="95b409e9548749e9"></ezmark-block>
+<h2 id="user-content-foo-bar-1">Foo <em>bar</em><a href="#user-content-foo-bar-1" aria-label="Link to heading 'Foo bar'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 81: Setext headings (differs from the spec)
+Foo *bar
+baz*
+====
+-------- pipeline output
+<ezmark-block key="71ae91dd6f6c2ed1"></ezmark-block>
+<h1 id="user-content-foo-bar-baz">Foo <em>bar
+baz</em><a href="#user-content-foo-bar-baz" aria-label="Link to heading 'Foo bar baz'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 82: Setext headings (differs from the spec)
+  Foo *bar
+baz*→
+====
+-------- pipeline output
+<ezmark-block key="63698f8d66b2d5c6"></ezmark-block>
+<h1 id="user-content-foo-bar-baz">Foo <em>bar
+baz</em><a href="#user-content-foo-bar-baz" aria-label="Link to heading 'Foo bar baz'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 83: Setext headings (differs from the spec)
+Foo
+-------------------------
+
+Foo
+=
+-------- pipeline output
+<ezmark-block key="5b203417e347d926"></ezmark-block>
+<h2 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="8b09111615877a0e"></ezmark-block>
+<h1 id="user-content-foo-1">Foo<a href="#user-content-foo-1" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 84: Setext headings (differs from the spec)
+   Foo
+---
+
+  Foo
+-----
+
+  Foo
+  ===
+-------- pipeline output
+<ezmark-block key="68d485f5297458b2"></ezmark-block>
+<h2 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="abf65b0bd946c132"></ezmark-block>
+<h2 id="user-content-foo-1">Foo<a href="#user-content-foo-1" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="61f72df483b6f4cc"></ezmark-block>
+<h1 id="user-content-foo-2">Foo<a href="#user-content-foo-2" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 85: Setext headings (differs from the spec)
+    Foo
+    ---
+
+    Foo
+---
+-------- pipeline output
+<ezmark-block key="d91d573214a20b70"></ezmark-block>
+<pre><code>Foo
+---
+
+Foo
+</code></pre>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 86: Setext headings (differs from the spec)
+Foo
+   ----      
+-------- pipeline output
+<ezmark-block key="eb534cddcf56b8b9"></ezmark-block>
+<h2 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 87: Setext headings (same as the spec)
+Foo
+    ---
+-------- pipeline output
+<ezmark-block key="b3662d49fe202d1c"></ezmark-block>
+<p>Foo
+---</p>
+
+======== example 88: Setext headings (differs from the spec)
+Foo
+= =
+
+Foo
+--- -
+-------- pipeline output
+<ezmark-block key="d9febdaf88653b15"></ezmark-block>
+<p>Foo
+= =</p>
+<ezmark-block key="f2bb95199c92e1d7"></ezmark-block>
+<p>Foo</p>
+<ezmark-block key="39531efb14d7d0cd"></ezmark-block>
+<hr>
+
+======== example 89: Setext headings (differs from the spec)
+Foo  
+-----
+-------- pipeline output
+<ezmark-block key="156e1a3187d1c3d2"></ezmark-block>
+<h2 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 90: Setext headings (differs from the spec)
+Foo\
+----
+-------- pipeline output
+<ezmark-block key="625377178f3e67ad"></ezmark-block>
+<h2 id="user-content-foo">Foo\<a href="#user-content-foo" aria-label="Link to heading 'Foo\'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 91: Setext headings (differs from the spec)
+`Foo
+----
+`
+
+<a title="a lot
+---
+of dashes"/>
+-------- pipeline output
+<ezmark-block key="08d62c2a491f6c05"></ezmark-block>
+<h2 id="user-content-foo">`Foo<a href="#user-content-foo" aria-label="Link to heading '`Foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="af63dd4c8601ee3f"></ezmark-block>
+<p>`</p>
+<ezmark-block key="69fa5dcdd77e32c2"></ezmark-block>
+<h2 id="user-content-a-titlea-lot">&lt;a title="a lot<a href="#user-content-a-titlea-lot" aria-label="Link to heading '&lt;a title=&quot;a lot'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="f80242adc58a1d3f"></ezmark-block>
+<p>of dashes"/&gt;</p>
+
+======== example 92: Setext headings (differs from the spec)
+> Foo
+---
+-------- pipeline output
+<ezmark-block key="4e999a244a14b1bd"></ezmark-block>
+<blockquote>
+<p>Foo</p>
+</blockquote>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 93: Setext headings (same as the spec)
+> foo
+bar
+===
+-------- pipeline output
+<ezmark-block key="184c3d69ad4e8889"></ezmark-block>
+<blockquote>
+<p>foo
+bar
+===</p>
+</blockquote>
+
+======== example 94: Setext headings (differs from the spec)
+- Foo
+---
+-------- pipeline output
+<ezmark-block key="d1420a15102fb530"></ezmark-block>
+<ul>
+<li>Foo</li>
+</ul>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 95: Setext headings (differs from the spec)
+Foo
+Bar
+---
+-------- pipeline output
+<ezmark-block key="8fcec5145039aceb"></ezmark-block>
+<h2 id="user-content-foo-bar">Foo
+Bar<a href="#user-content-foo-bar" aria-label="Link to heading 'Foo Bar'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 96: Setext headings (differs from the spec)
+---
+Foo
+---
+Bar
+---
+Baz
+-------- pipeline output
+<ezmark-block key="51b7cc3572dc6b37"></ezmark-block>
+<details class="front-matter"><summary>Front matter</summary><pre>Foo</pre></details>
+<ezmark-block key="9af2195f6c044dc9"></ezmark-block>
+<h2 id="user-content-bar">Bar<a href="#user-content-bar" aria-label="Link to heading 'Bar'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="16414c19b0f091e2"></ezmark-block>
+<p>Baz</p>
+
+======== example 97: Setext headings (same as the spec)
+
+====
+-------- pipeline output
+<ezmark-block key="b3ac20141a400a31"></ezmark-block>
+<p>====</p>
+
+======== example 98: Setext headings (differs from the spec)
+---
+---
+-------- pipeline output
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 99: Setext headings (differs from the spec)
+- foo
+-----
+-------- pipeline output
+<ezmark-block key="be9fea14755b84d0"></ezmark-block>
+<ul>
+<li>foo</li>
+</ul>
+<ezmark-block key="39641afb14e63d34"></ezmark-block>
+<hr>
+
+======== example 100: Setext headings (differs from the spec)
+    foo
+---
+-------- pipeline output
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo
+</code></pre>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 101: Setext headings (differs from the spec)
+> foo
+-----
+-------- pipeline output
+<ezmark-block key="38907a23ac5ba55d"></ezmark-block>
+<blockquote>
+<p>foo</p>
+</blockquote>
+<ezmark-block key="39641afb14e63d34"></ezmark-block>
+<hr>
+
+======== example 102: Setext headings (differs from the spec)
+\> foo
+------
+-------- pipeline output
+<ezmark-block key="5dce21d02652952d"></ezmark-block>
+<h2 id="user-content--foo">&gt; foo<a href="#user-content--foo" aria-label="Link to heading '&gt; foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+
+======== example 103: Setext headings (differs from the spec)
+Foo
+
+bar
+---
+baz
+-------- pipeline output
+<ezmark-block key="f2bb95199c92e1d7"></ezmark-block>
+<p>Foo</p>
+<ezmark-block key="24aefb367761baa9"></ezmark-block>
+<h2 id="user-content-bar">bar<a href="#user-content-bar" aria-label="Link to heading 'bar'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 104: Setext headings (differs from the spec)
+Foo
+bar
+
+---
+
+baz
+-------- pipeline output
+<ezmark-block key="4f4ce1b05c138db8"></ezmark-block>
+<p>Foo
+bar</p>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 105: Setext headings (differs from the spec)
+Foo
+bar
+* * *
+baz
+-------- pipeline output
+<ezmark-block key="4f4ce1b05c138db8"></ezmark-block>
+<p>Foo
+bar</p>
+<ezmark-block key="171af52853b4e24d"></ezmark-block>
+<hr>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 106: Setext headings (same as the spec)
+Foo
+bar
+\---
+baz
+-------- pipeline output
+<ezmark-block key="e36422e342f40a3c"></ezmark-block>
+<p>Foo
+bar
+---
+baz</p>
+
+======== example 107: Indented code blocks (same as the spec)
+    a simple
+      indented code block
+-------- pipeline output
+<ezmark-block key="c2d47255cc2351a1"></ezmark-block>
+<pre><code>a simple
+  indented code block
+</code></pre>
+
+======== example 108: Indented code blocks (same as the spec)
+  - foo
+
+    bar
+-------- pipeline output
+<ezmark-block key="2bd1b586f43af991"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<p>bar</p>
+</li>
+</ul>
+
+======== example 109: Indented code blocks (same as the spec)
+1.  foo
+
+    - bar
+-------- pipeline output
+<ezmark-block key="bbc4e3614b6cd0d0"></ezmark-block>
+<ol>
+<li>
+<p>foo</p>
+<ul>
+<li>bar</li>
+</ul>
+</li>
+</ol>
+
+======== example 110: Indented code blocks (same as the spec)
+    <a/>
+    *hi*
+
+    - one
+-------- pipeline output
+<ezmark-block key="d027e5ee9fd9abe1"></ezmark-block>
+<pre><code>&lt;a/&gt;
+*hi*
+
+- one
+</code></pre>
+
+======== example 111: Indented code blocks (same as the spec)
+    chunk1
+
+    chunk2
+  
+ 
+ 
+    chunk3
+-------- pipeline output
+<ezmark-block key="3412cf2cdbee9f6a"></ezmark-block>
+<pre><code>chunk1
+
+chunk2
+
+
+
+chunk3
+</code></pre>
+
+======== example 112: Indented code blocks (same as the spec)
+    chunk1
+      
+      chunk2
+-------- pipeline output
+<ezmark-block key="f75451b65c566d04"></ezmark-block>
+<pre><code>chunk1
+  
+  chunk2
+</code></pre>
+
+======== example 113: Indented code blocks (same as the spec)
+Foo
+    bar
+
+-------- pipeline output
+<ezmark-block key="5eb3d548ac6ebfe8"></ezmark-block>
+<p>Foo
+bar</p>
+
+======== example 114: Indented code blocks (same as the spec)
+    foo
+bar
+-------- pipeline output
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo
+</code></pre>
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 115: Indented code blocks (differs from the spec)
+# Heading
+    foo
+Heading
+------
+    foo
+----
+-------- pipeline output
+<ezmark-block key="cdb3a6ae095357c8"></ezmark-block>
+<h1 id="user-content-heading">Heading<a href="#user-content-heading" aria-label="Link to heading 'Heading'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo
+</code></pre>
+<ezmark-block key="cddde2c2fea74403"></ezmark-block>
+<h2 id="user-content-heading-1">Heading<a href="#user-content-heading-1" aria-label="Link to heading 'Heading'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo
+</code></pre>
+<ezmark-block key="29339f8e6836abd1"></ezmark-block>
+<hr>
+
+======== example 116: Indented code blocks (same as the spec)
+        foo
+    bar
+-------- pipeline output
+<ezmark-block key="ffaa2031b27658a8"></ezmark-block>
+<pre><code>    foo
+bar
+</code></pre>
+
+======== example 117: Indented code blocks (same as the spec)
+
+    
+    foo
+    
+
+-------- pipeline output
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo
+</code></pre>
+
+======== example 118: Indented code blocks (same as the spec)
+    foo  
+-------- pipeline output
+<ezmark-block key="a900a1286edac827"></ezmark-block>
+<pre><code>foo  
+</code></pre>
+
+======== example 119: Fenced code blocks (same as the spec)
+```
+<
+ >
+```
+-------- pipeline output
+<ezmark-block key="6bb3f2de731e587d"></ezmark-block>
+<pre><code>&lt;
+ &gt;
+</code></pre>
+
+======== example 120: Fenced code blocks (same as the spec)
+~~~
+<
+ >
+~~~
+-------- pipeline output
+<ezmark-block key="04594a2eec64c2fd"></ezmark-block>
+<pre><code>&lt;
+ &gt;
+</code></pre>
+
+======== example 121: Fenced code blocks (same as the spec)
+``
+foo
+``
+-------- pipeline output
+<ezmark-block key="161c17ba55338c1f"></ezmark-block>
+<p><code>foo</code></p>
+
+======== example 122: Fenced code blocks (same as the spec)
+```
+aaa
+~~~
+```
+-------- pipeline output
+<ezmark-block key="0e08859305c18c2e"></ezmark-block>
+<pre><code>aaa
+~~~
+</code></pre>
+
+======== example 123: Fenced code blocks (same as the spec)
+~~~
+aaa
+```
+~~~
+-------- pipeline output
+<ezmark-block key="9fbee3558e436c78"></ezmark-block>
+<pre><code>aaa
+```
+</code></pre>
+
+======== example 124: Fenced code blocks (same as the spec)
+````
+aaa
+```
+``````
+-------- pipeline output
+<ezmark-block key="d7658db0c7e0fe5e"></ezmark-block>
+<pre><code>aaa
+```
+</code></pre>
+
+======== example 125: Fenced code blocks (same as the spec)
+~~~~
+aaa
+~~~
+~~~~
+-------- pipeline output
+<ezmark-block key="4a2bd22b1e21689c"></ezmark-block>
+<pre><code>aaa
+~~~
+</code></pre>
+
+======== example 126: Fenced code blocks (same as the spec)
+```
+-------- pipeline output
+<ezmark-block key="eee8d219096ac717"></ezmark-block>
+<pre><code></code></pre>
+
+======== example 127: Fenced code blocks (same as the spec)
+`````
+
+```
+aaa
+-------- pipeline output
+<ezmark-block key="1ac0eb5aa7ebc82a"></ezmark-block>
+<pre><code>
+```
+aaa
+</code></pre>
+
+======== example 128: Fenced code blocks (same as the spec)
+> ```
+> aaa
+
+bbb
+-------- pipeline output
+<ezmark-block key="b5d0bf1bfecee9e8"></ezmark-block>
+<blockquote>
+<pre><code>aaa
+</code></pre>
+</blockquote>
+<ezmark-block key="00431619134167a5"></ezmark-block>
+<p>bbb</p>
+
+======== example 129: Fenced code blocks (same as the spec)
+```
+
+  
+```
+-------- pipeline output
+<ezmark-block key="af8221671fa3ab55"></ezmark-block>
+<pre><code>
+  
+</code></pre>
+
+======== example 130: Fenced code blocks (same as the spec)
+```
+```
+-------- pipeline output
+<ezmark-block key="9d55a9ff1958a28d"></ezmark-block>
+<pre><code></code></pre>
+
+======== example 131: Fenced code blocks (same as the spec)
+ ```
+ aaa
+aaa
+```
+-------- pipeline output
+<ezmark-block key="d2256eff3da5074d"></ezmark-block>
+<pre><code>aaa
+aaa
+</code></pre>
+
+======== example 132: Fenced code blocks (same as the spec)
+  ```
+aaa
+  aaa
+aaa
+  ```
+-------- pipeline output
+<ezmark-block key="aaf6f27c04d6dcfa"></ezmark-block>
+<pre><code>aaa
+aaa
+aaa
+</code></pre>
+
+======== example 133: Fenced code blocks (same as the spec)
+   ```
+   aaa
+    aaa
+  aaa
+   ```
+-------- pipeline output
+<ezmark-block key="9b495e914f5b351e"></ezmark-block>
+<pre><code>aaa
+ aaa
+aaa
+</code></pre>
+
+======== example 134: Fenced code blocks (same as the spec)
+    ```
+    aaa
+    ```
+-------- pipeline output
+<ezmark-block key="968bae9d23e4c672"></ezmark-block>
+<pre><code>```
+aaa
+```
+</code></pre>
+
+======== example 135: Fenced code blocks (same as the spec)
+```
+aaa
+  ```
+-------- pipeline output
+<ezmark-block key="12680b1b9cffcb62"></ezmark-block>
+<pre><code>aaa
+</code></pre>
+
+======== example 136: Fenced code blocks (same as the spec)
+   ```
+aaa
+  ```
+-------- pipeline output
+<ezmark-block key="aaf2306a578cb978"></ezmark-block>
+<pre><code>aaa
+</code></pre>
+
+======== example 137: Fenced code blocks (same as the spec)
+```
+aaa
+    ```
+-------- pipeline output
+<ezmark-block key="69952118c59231b2"></ezmark-block>
+<pre><code>aaa
+    ```
+</code></pre>
+
+======== example 138: Fenced code blocks (same as the spec)
+``` ```
+aaa
+-------- pipeline output
+<ezmark-block key="ad98145cc7dbc988"></ezmark-block>
+<p><code> </code>
+aaa</p>
+
+======== example 139: Fenced code blocks (same as the spec)
+~~~~~~
+aaa
+~~~ ~~
+-------- pipeline output
+<ezmark-block key="810b86ae3eb20bb6"></ezmark-block>
+<pre><code>aaa
+~~~ ~~
+</code></pre>
+
+======== example 140: Fenced code blocks (same as the spec)
+foo
+```
+bar
+```
+baz
+-------- pipeline output
+<ezmark-block key="dcb27518fed9d577"></ezmark-block>
+<p>foo</p>
+<ezmark-block key="9d935a01aeafbc72"></ezmark-block>
+<pre><code>bar
+</code></pre>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 141: Fenced code blocks (differs from the spec)
+foo
+---
+~~~
+bar
+~~~
+# baz
+-------- pipeline output
+<ezmark-block key="28685108f446e46c"></ezmark-block>
+<h2 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h2>
+<ezmark-block key="b7b5116b8a964eba"></ezmark-block>
+<pre><code>bar
+</code></pre>
+<ezmark-block key="8bbdd2ab001d8cc7"></ezmark-block>
+<h1 id="user-content-baz">baz<a href="#user-content-baz" aria-label="Link to heading 'baz'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 142: Fenced code blocks (differs from the spec)
+```ruby
+def foo(x)
+  return 3
+end
+```
+-------- pipeline output
+<ezmark-block key="f67cab2807a8760b"></ezmark-block>
+<pre><code class="language-ruby"><span class="hl-keyword">def </span><span class="hl-entity">foo</span>(x)
+  <span class="hl-keyword">return </span><span class="hl-constant">3
+</span><span class="hl-keyword">end
+</span></code></pre>
+
+======== example 143: Fenced code blocks (differs from the spec)
+~~~~    ruby startline=3 $%@#$
+def foo(x)
+  return 3
+end
+~~~~~~~
+-------- pipeline output
+<ezmark-block key="b370a1a5d5769f9f"></ezmark-block>
+<pre><code class="language-ruby"><span class="hl-keyword">def </span><span class="hl-entity">foo</span>(x)
+  <span class="hl-keyword">return </span><span class="hl-constant">3
+</span><span class="hl-keyword">end
+</span></code></pre>
+
+======== example 144: Fenced code blocks (differs from the spec)
+````;
+````
+-------- pipeline output
+<ezmark-block key="f54a1ff1f27c39c0"></ezmark-block>
+<pre><code></code></pre>
+
+======== example 145: Fenced code blocks (same as the spec)
+``` aa ```
+foo
+-------- pipeline output
+<ezmark-block key="1ad714e67d78f841"></ezmark-block>
+<p><code>aa</code>
+foo</p>
+
+======== example 146: Fenced code blocks (same as the spec)
+~~~ aa ``` ~~~
+foo
+~~~
+-------- pipeline output
+<ezmark-block key="c2f3a2e669bd3fb1"></ezmark-block>
+<pre><code class="language-aa">foo
+</code></pre>
+
+======== example 147: Fenced code blocks (same as the spec)
+```
+``` aaa
+```
+-------- pipeline output
+<ezmark-block key="38f040aa88d30d62"></ezmark-block>
+<pre><code>``` aaa
+</code></pre>
+
+======== example 148: HTML blocks (differs from the spec)
+<table><tr><td>
+<pre>
+**Hello**,
+
+_world_.
+</pre>
+</td></tr></table>
+-------- pipeline output
+<ezmark-block key="b2890b99482d2952"></ezmark-block>
+<table><tbody><tr><td>
+<pre>**Hello**,
+<ezmark-block key="4b0b4797d37b4373"></ezmark-block>
+<p><em>world</em>.
+</p></pre><p></p>
+<ezmark-block key="c5c093d1f95159ce"></ezmark-block>
+</td></tr></tbody></table>
+
+======== example 149: HTML blocks (differs from the spec)
+<table>
+  <tr>
+    <td>
+           hi
+    </td>
+  </tr>
+</table>
+
+okay.
+-------- pipeline output
+<ezmark-block key="b3adaafdd31c2171"></ezmark-block>
+<table>
+  <tbody><tr>
+    <td>
+           hi
+    </td>
+  </tr>
+</tbody></table>
+<ezmark-block key="d102b2bb24501965"></ezmark-block>
+<p>okay.</p>
+
+======== example 150: HTML blocks (differs from the spec)
+ <div>
+  *hello*
+         <foo><a>
+-------- pipeline output
+<ezmark-block key="7dca1a2f3f1fc10f"></ezmark-block>
+ <div>
+  *hello*
+         <a rel="noopener noreferrer">
+</a></div>
+
+======== example 151: HTML blocks (differs from the spec)
+</div>
+*foo*
+-------- pipeline output
+<ezmark-block key="ec893e0fbe1948a5"></ezmark-block>
+
+*foo*
+
+======== example 152: HTML blocks (differs from the spec)
+<DIV CLASS="foo">
+
+*Markdown*
+
+</DIV>
+-------- pipeline output
+<ezmark-block key="4c2ae36b0baff2a3"></ezmark-block>
+<div>
+<ezmark-block key="4bfcce76513f3aea"></ezmark-block>
+<p><em>Markdown</em></p>
+<ezmark-block key="aa9c9210c3ff76b3"></ezmark-block>
+</div>
+
+======== example 153: HTML blocks (differs from the spec)
+<div id="foo"
+  class="bar">
+</div>
+-------- pipeline output
+<ezmark-block key="dde74d06da994b10"></ezmark-block>
+<div id="user-content-foo">
+</div>
+
+======== example 154: HTML blocks (differs from the spec)
+<div id="foo" class="bar
+  baz">
+</div>
+-------- pipeline output
+<ezmark-block key="1d14a9115d22b57b"></ezmark-block>
+<div id="user-content-foo">
+</div>
+
+======== example 155: HTML blocks (differs from the spec)
+<div>
+*foo*
+
+*bar*
+-------- pipeline output
+<ezmark-block key="7f52a2b72c3e24aa"></ezmark-block>
+<div>
+*foo*
+<ezmark-block key="1cd9562351459018"></ezmark-block>
+<p><em>bar</em></p>
+</div>
+
+======== example 156: HTML blocks (differs from the spec)
+<div id="foo"
+*hi*
+-------- pipeline output
+<ezmark-block key="0755f2a31cbc55c1"></ezmark-block>
+
+======== example 157: HTML blocks (differs from the spec)
+<div class
+foo
+-------- pipeline output
+<ezmark-block key="0fc677bfa7658048"></ezmark-block>
+
+======== example 158: HTML blocks (differs from the spec)
+<div *???-&&&-<---
+*foo*
+-------- pipeline output
+<ezmark-block key="988e655a2a52396c"></ezmark-block>
+
+======== example 159: HTML blocks (differs from the spec)
+<div><a href="bar">*foo*</a></div>
+-------- pipeline output
+<ezmark-block key="9676f4bcde801e58"></ezmark-block>
+<div><a href="bar" rel="noopener noreferrer">*foo*</a></div>
+
+======== example 160: HTML blocks (differs from the spec)
+<table><tr><td>
+foo
+</td></tr></table>
+-------- pipeline output
+<ezmark-block key="4ce55c969985023a"></ezmark-block>
+<table><tbody><tr><td>
+foo
+</td></tr></tbody></table>
+
+======== example 161: HTML blocks (same as the spec)
+<div></div>
+``` c
+int x = 33;
+```
+-------- pipeline output
+<ezmark-block key="15e2a566b7cac450"></ezmark-block>
+<div></div>
+``` c
+int x = 33;
+```
+
+======== example 162: HTML blocks (differs from the spec)
+<a href="foo">
+*bar*
+</a>
+-------- pipeline output
+<ezmark-block key="f587e233e66d8253"></ezmark-block>
+<a href="foo" rel="noopener noreferrer">
+*bar*
+</a>
+
+======== example 163: HTML blocks (differs from the spec)
+<Warning>
+*bar*
+</Warning>
+-------- pipeline output
+<ezmark-block key="6062384255212e8d"></ezmark-block>
+
+*bar*
+
+
+======== example 164: HTML blocks (differs from the spec)
+<i class="foo">
+*bar*
+</i>
+-------- pipeline output
+<ezmark-block key="c570abfd04c8ffe2"></ezmark-block>
+<i>
+*bar*
+</i>
+
+======== example 165: HTML blocks (differs from the spec)
+</ins>
+*bar*
+-------- pipeline output
+<ezmark-block key="fea678f6d1bed567"></ezmark-block>
+
+*bar*
+
+======== example 166: HTML blocks (same as the spec)
+<del>
+*foo*
+</del>
+-------- pipeline output
+<ezmark-block key="1e8475b454363526"></ezmark-block>
+<del>
+*foo*
+</del>
+
+======== example 167: HTML blocks (same as the spec)
+<del>
+
+*foo*
+
+</del>
+-------- pipeline output
+<ezmark-block key="b7d97ddcce331d06"></ezmark-block>
+<del>
+<ezmark-block key="c04e65ffc824544f"></ezmark-block>
+<p><em>foo</em></p>
+<ezmark-block key="7cf65d0948fef92d"></ezmark-block>
+</del>
+
+======== example 168: HTML blocks (same as the spec)
+<del>*foo*</del>
+-------- pipeline output
+<ezmark-block key="48f551730dd1e53a"></ezmark-block>
+<p><del><em>foo</em></del></p>
+
+======== example 169: HTML blocks (differs from the spec)
+<pre language="haskell"><code>
+import Text.HTML.TagSoup
+
+main :: IO ()
+main = print $ parseTags tags
+</code></pre>
+okay
+-------- pipeline output
+<ezmark-block key="171007dc7fe2709c"></ezmark-block>
+<pre><code>
+import Text.HTML.TagSoup
+
+main :: IO ()
+main = print $ parseTags tags
+</code></pre>
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 170: HTML blocks (differs from the spec)
+<script type="text/javascript">
+// JavaScript example
+
+document.getElementById("demo").innerHTML = "Hello JavaScript!";
+</script>
+okay
+-------- pipeline output
+<ezmark-block key="68ffd1d4e0fcf72d"></ezmark-block>
+
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 171: HTML blocks (differs from the spec)
+<textarea>
+
+*foo*
+
+_bar_
+
+</textarea>
+-------- pipeline output
+<ezmark-block key="1d14186bf1714e99"></ezmark-block>
+
+*foo*
+
+_bar_
+
+
+
+======== example 172: HTML blocks (differs from the spec)
+<style
+  type="text/css">
+h1 {color:red;}
+
+p {color:blue;}
+</style>
+okay
+-------- pipeline output
+<ezmark-block key="2196f7a5d901e678"></ezmark-block>
+
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 173: HTML blocks (differs from the spec)
+<style
+  type="text/css">
+
+foo
+-------- pipeline output
+<ezmark-block key="48ca5ae45631e14a"></ezmark-block>
+
+======== example 174: HTML blocks (differs from the spec)
+> <div>
+> foo
+
+bar
+-------- pipeline output
+<ezmark-block key="a30a99a6cfe005de"></ezmark-block>
+<blockquote>
+<div>
+foo
+</div></blockquote>
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 175: HTML blocks (differs from the spec)
+- <div>
+- foo
+-------- pipeline output
+<ezmark-block key="4e5505c76ff80936"></ezmark-block>
+<ul>
+<li>
+<div>
+</div></li>
+<li>foo</li>
+</ul>
+
+======== example 176: HTML blocks (differs from the spec)
+<style>p{color:red;}</style>
+*foo*
+-------- pipeline output
+<ezmark-block key="6a8987113f6a3ed7"></ezmark-block>
+
+<ezmark-block key="c04e65ffc824544f"></ezmark-block>
+<p><em>foo</em></p>
+
+======== example 177: HTML blocks (differs from the spec)
+<!-- foo -->*bar*
+*baz*
+-------- pipeline output
+<ezmark-block key="7a06968ec6ae5b03"></ezmark-block>
+*bar*
+<ezmark-block key="1cf47623515c8e30"></ezmark-block>
+<p><em>baz</em></p>
+
+======== example 178: HTML blocks (differs from the spec)
+<script>
+foo
+</script>1. *bar*
+-------- pipeline output
+<ezmark-block key="3523cf297d85effe"></ezmark-block>
+1. *bar*
+
+======== example 179: HTML blocks (differs from the spec)
+<!-- Foo
+
+bar
+   baz -->
+okay
+-------- pipeline output
+<ezmark-block key="553bb36f8d2e7390"></ezmark-block>
+
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 180: HTML blocks (differs from the spec)
+<?php
+
+  echo '>';
+
+?>
+okay
+-------- pipeline output
+<ezmark-block key="c306a7b80232c475"></ezmark-block>
+';
+
+?&gt;
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 181: HTML blocks (differs from the spec)
+<!DOCTYPE html>
+-------- pipeline output
+<ezmark-block key="45ab99a410d16469"></ezmark-block>
+
+
+======== example 182: HTML blocks (differs from the spec)
+<![CDATA[
+function matchwo(a,b)
+{
+  if (a < b && a < 0) then {
+    return 1;
+
+  } else {
+
+    return 0;
+  }
+}
+]]>
+okay
+-------- pipeline output
+<ezmark-block key="bb36d2c0db288da1"></ezmark-block>
+
+<ezmark-block key="3250a3b48351fca9"></ezmark-block>
+<p>okay</p>
+
+======== example 183: HTML blocks (differs from the spec)
+  <!-- foo -->
+
+    <!-- foo -->
+-------- pipeline output
+<ezmark-block key="e205d657799bfa9c"></ezmark-block>
+  
+<ezmark-block key="787aee2fb200d864"></ezmark-block>
+<pre><code>&lt;!-- foo --&gt;
+</code></pre>
+
+======== example 184: HTML blocks (differs from the spec)
+  <div>
+
+    <div>
+-------- pipeline output
+<ezmark-block key="a8fc9df3e88fe5b8"></ezmark-block>
+  <div>
+<ezmark-block key="70959141f5c78220"></ezmark-block>
+<pre><code>&lt;div&gt;
+</code></pre>
+</div>
+
+======== example 185: HTML blocks (same as the spec)
+Foo
+<div>
+bar
+</div>
+-------- pipeline output
+<ezmark-block key="f2bb95199c92e1d7"></ezmark-block>
+<p>Foo</p>
+<ezmark-block key="5749ad74d18b7219"></ezmark-block>
+<div>
+bar
+</div>
+
+======== example 186: HTML blocks (same as the spec)
+<div>
+bar
+</div>
+*foo*
+-------- pipeline output
+<ezmark-block key="d65b4437f53111d3"></ezmark-block>
+<div>
+bar
+</div>
+*foo*
+
+======== example 187: HTML blocks (differs from the spec)
+Foo
+<a href="bar">
+baz
+-------- pipeline output
+<ezmark-block key="2bc85323beb8defc"></ezmark-block>
+<p>Foo
+<a href="bar" rel="noopener noreferrer">
+baz</a></p><a href="bar" rel="noopener noreferrer">
+</a>
+
+======== example 188: HTML blocks (same as the spec)
+<div>
+
+*Emphasized* text.
+
+</div>
+-------- pipeline output
+<ezmark-block key="9723d9dcbc38df50"></ezmark-block>
+<div>
+<ezmark-block key="f40a8ce0aa1d2ffa"></ezmark-block>
+<p><em>Emphasized</em> text.</p>
+<ezmark-block key="13edf1090d324cd3"></ezmark-block>
+</div>
+
+======== example 189: HTML blocks (same as the spec)
+<div>
+*Emphasized* text.
+</div>
+-------- pipeline output
+<ezmark-block key="e4e02c4e234992e7"></ezmark-block>
+<div>
+*Emphasized* text.
+</div>
+
+======== example 190: HTML blocks (differs from the spec)
+<table>
+
+<tr>
+
+<td>
+Hi
+</td>
+
+</tr>
+
+</table>
+-------- pipeline output
+<ezmark-block key="3e373a3614ed1659"></ezmark-block>
+<ezmark-block key="246f7419802bced9"></ezmark-block><ezmark-block key="dad0b8f353b1a59b"></ezmark-block><ezmark-block key="54aee6965d9e54a0"></ezmark-block><ezmark-block key="7add7cd5036e554a"></ezmark-block><table>
+
+<tbody><tr>
+
+<td>
+Hi
+</td>
+
+</tr>
+
+</tbody></table>
+
+======== example 191: HTML blocks (differs from the spec)
+<table>
+
+  <tr>
+
+    <td>
+      Hi
+    </td>
+
+  </tr>
+
+</table>
+-------- pipeline output
+<ezmark-block key="3e373a3614ed1659"></ezmark-block>
+<ezmark-block key="f1a21e6452320301"></ezmark-block><ezmark-block key="4c4e1a3733253113"></ezmark-block><pre><code>&lt;td&gt;
+  Hi
+&lt;/td&gt;
+</code></pre><ezmark-block key="a0699705ae650548"></ezmark-block><ezmark-block key="7add7cd5036e554a"></ezmark-block><table>
+
+  <tbody><tr>
+
+
+
+  </tr>
+
+</tbody></table>
+
+======== example 192: Link reference definitions (differs from the spec)
+[foo]: /url "title"
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 193: Link reference definitions (differs from the spec)
+   [foo]: 
+      /url  
+           'the title'  
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" title="the title" rel="noopener noreferrer">foo</a></p>
+
+======== example 194: Link reference definitions (differs from the spec)
+[Foo*bar\]]:my_(url) 'title (with parens)'
+
+[Foo*bar\]]
+-------- pipeline output
+<ezmark-block key="4133c3d69a675aad"></ezmark-block>
+<p><a href="my_(url)" title="title (with parens)" rel="noopener noreferrer">Foo*bar]</a></p>
+
+======== example 195: Link reference definitions (differs from the spec)
+[Foo bar]:
+<my url>
+'title'
+
+[Foo bar]
+-------- pipeline output
+<ezmark-block key="f294814f2ab41c4e"></ezmark-block>
+<p><a href="my%20url" title="title" rel="noopener noreferrer">Foo bar</a></p>
+
+======== example 196: Link reference definitions (differs from the spec)
+[foo]: /url '
+title
+line1
+line2
+'
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" title="
+title
+line1
+line2
+" rel="noopener noreferrer">foo</a></p>
+
+======== example 197: Link reference definitions (same as the spec)
+[foo]: /url 'title
+
+with blank line'
+
+[foo]
+-------- pipeline output
+<ezmark-block key="8531f11db2667472"></ezmark-block>
+<p>[foo]: /url 'title</p>
+<ezmark-block key="1804bb72820d2af0"></ezmark-block>
+<p>with blank line'</p>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p>[foo]</p>
+
+======== example 198: Link reference definitions (differs from the spec)
+[foo]:
+/url
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">foo</a></p>
+
+======== example 199: Link reference definitions (same as the spec)
+[foo]:
+
+[foo]
+-------- pipeline output
+<ezmark-block key="49216538dae8129d"></ezmark-block>
+<p>[foo]:</p>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p>[foo]</p>
+
+======== example 200: Link reference definitions (differs from the spec)
+[foo]: <>
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="" rel="noopener noreferrer">foo</a></p>
+
+======== example 201: Link reference definitions (differs from the spec)
+[foo]: <bar>(baz)
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ed36f937c1709614"></ezmark-block>
+<p>[foo]: (baz)</p>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p>[foo]</p>
+
+======== example 202: Link reference definitions (differs from the spec)
+[foo]: /url\bar\*baz "foo\"bar\baz"
+
+[foo]
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url%5Cbar*baz" title="foo&quot;bar\baz" rel="noopener noreferrer">foo</a></p>
+
+======== example 203: Link reference definitions (differs from the spec)
+[foo]
+
+[foo]: url
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="url" rel="noopener noreferrer">foo</a></p>
+
+======== example 204: Link reference definitions (differs from the spec)
+[foo]
+
+[foo]: first
+[foo]: second
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="first" rel="noopener noreferrer">foo</a></p>
+
+======== example 205: Link reference definitions (differs from the spec)
+[FOO]: /url
+
+[Foo]
+-------- pipeline output
+<ezmark-block key="b35c5bc474c44b35"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">Foo</a></p>
+
+======== example 206: Link reference definitions (differs from the spec)
+[ΑΓΩ]: /φου
+
+[αγω]
+-------- pipeline output
+<ezmark-block key="1bc29f2ef23c2acb"></ezmark-block>
+<p><a href="/%CF%86%CE%BF%CF%85" rel="noopener noreferrer">αγω</a></p>
+
+======== example 207: Link reference definitions (same as the spec)
+[foo]: /url
+-------- pipeline output
+
+
+======== example 208: Link reference definitions (same as the spec)
+[
+foo
+]: /url
+bar
+-------- pipeline output
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 209: Link reference definitions (differs from the spec)
+[foo]: /url "title" ok
+-------- pipeline output
+<ezmark-block key="a384b9462ccaa223"></ezmark-block>
+<p>[foo]: /url "title" ok</p>
+
+======== example 210: Link reference definitions (differs from the spec)
+[foo]: /url
+"title" ok
+-------- pipeline output
+<ezmark-block key="b11832d486929e3d"></ezmark-block>
+<p>"title" ok</p>
+
+======== example 211: Link reference definitions (differs from the spec)
+    [foo]: /url "title"
+
+[foo]
+-------- pipeline output
+<ezmark-block key="15ac065b828b353b"></ezmark-block>
+<pre><code>[foo]: /url "title"
+</code></pre>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p>[foo]</p>
+
+======== example 212: Link reference definitions (same as the spec)
+```
+[foo]: /url
+```
+
+[foo]
+-------- pipeline output
+<ezmark-block key="81b956c84db37019"></ezmark-block>
+<pre><code>[foo]: /url
+</code></pre>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p>[foo]</p>
+
+======== example 213: Link reference definitions (same as the spec)
+Foo
+[bar]: /baz
+
+[bar]
+-------- pipeline output
+<ezmark-block key="5e5b30c8f02e64f4"></ezmark-block>
+<p>Foo
+[bar]: /baz</p>
+<ezmark-block key="d4724eac8b371832"></ezmark-block>
+<p>[bar]</p>
+
+======== example 214: Link reference definitions (differs from the spec)
+# [Foo]
+[foo]: /url
+> bar
+-------- pipeline output
+<ezmark-block key="080259cebd2e4584"></ezmark-block>
+<h1 id="user-content-foo"><a href="/url" rel="noopener noreferrer">Foo</a><a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="1466e123977213fc"></ezmark-block>
+<blockquote>
+<p>bar</p>
+</blockquote>
+
+======== example 215: Link reference definitions (differs from the spec)
+[foo]: /url
+bar
+===
+[foo]
+-------- pipeline output
+<ezmark-block key="872ba877d57e6d2d"></ezmark-block>
+<h1 id="user-content-bar">bar<a href="#user-content-bar" aria-label="Link to heading 'bar'" class="anchor" rel="noopener noreferrer"></a></h1>
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">foo</a></p>
+
+======== example 216: Link reference definitions (differs from the spec)
+[foo]: /url
+===
+[foo]
+-------- pipeline output
+<ezmark-block key="b2da169bb1edbe06"></ezmark-block>
+<p>===
+<a href="/url" rel="noopener noreferrer">foo</a></p>
+
+======== example 217: Link reference definitions (differs from the spec)
+[foo]: /foo-url "foo"
+[bar]: /bar-url
+  "bar"
+[baz]: /baz-url
+
+[foo],
+[bar],
+[baz]
+-------- pipeline output
+<ezmark-block key="95cb8c36d87d1dcb"></ezmark-block>
+<p><a href="/foo-url" title="foo" rel="noopener noreferrer">foo</a>,
+<a href="/bar-url" title="bar" rel="noopener noreferrer">bar</a>,
+<a href="/baz-url" rel="noopener noreferrer">baz</a></p>
+
+======== example 218: Link reference definitions (differs from the spec)
+[foo]
+
+> [foo]: /url
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">foo</a></p>
+<ezmark-block key="5e4ed12f4f8e148f"></ezmark-block>
+<blockquote>
+</blockquote>
+
+======== example 219: Paragraphs (same as the spec)
+aaa
+
+bbb
+-------- pipeline output
+<ezmark-block key="e71cbc19053f4da2"></ezmark-block>
+<p>aaa</p>
+<ezmark-block key="00431619134167a5"></ezmark-block>
+<p>bbb</p>
+
+======== example 220: Paragraphs (same as the spec)
+aaa
+bbb
+
+ccc
+ddd
+-------- pipeline output
+<ezmark-block key="0cbc7d762cd1b1f2"></ezmark-block>
+<p>aaa
+bbb</p>
+<ezmark-block key="48852680184e43ee"></ezmark-block>
+<p>ccc
+ddd</p>
+
+======== example 221: Paragraphs (same as the spec)
+aaa
+
+
+bbb
+-------- pipeline output
+<ezmark-block key="e71cbc19053f4da2"></ezmark-block>
+<p>aaa</p>
+<ezmark-block key="00431619134167a5"></ezmark-block>
+<p>bbb</p>
+
+======== example 222: Paragraphs (same as the spec)
+  aaa
+ bbb
+-------- pipeline output
+<ezmark-block key="d79dcefcc6036f7a"></ezmark-block>
+<p>aaa
+bbb</p>
+
+======== example 223: Paragraphs (same as the spec)
+aaa
+             bbb
+                                       ccc
+-------- pipeline output
+<ezmark-block key="74bc80a0e38004af"></ezmark-block>
+<p>aaa
+bbb
+ccc</p>
+
+======== example 224: Paragraphs (same as the spec)
+   aaa
+bbb
+-------- pipeline output
+<ezmark-block key="59b8443d7d05dd18"></ezmark-block>
+<p>aaa
+bbb</p>
+
+======== example 225: Paragraphs (same as the spec)
+    aaa
+bbb
+-------- pipeline output
+<ezmark-block key="b0dea82873164e52"></ezmark-block>
+<pre><code>aaa
+</code></pre>
+<ezmark-block key="00431619134167a5"></ezmark-block>
+<p>bbb</p>
+
+======== example 226: Paragraphs (differs from the spec)
+aaa     
+bbb     
+-------- pipeline output
+<ezmark-block key="909d21787b1ba2d6"></ezmark-block>
+<p>aaa<br>
+bbb</p>
+
+======== example 227: Blank lines (differs from the spec)
+  
+
+aaa
+  
+
+# aaa
+
+  
+-------- pipeline output
+<ezmark-block key="e71cbc19053f4da2"></ezmark-block>
+<p>aaa</p>
+<ezmark-block key="a4da62ab0e17ae07"></ezmark-block>
+<h1 id="user-content-aaa">aaa<a href="#user-content-aaa" aria-label="Link to heading 'aaa'" class="anchor" rel="noopener noreferrer"></a></h1>
+
+======== example 228: Block quotes (differs from the spec)
+> # Foo
+> bar
+> baz
+-------- pipeline output
+<ezmark-block key="c3fd37f4272ff844"></ezmark-block>
+<blockquote>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<p>bar
+baz</p>
+</blockquote>
+
+======== example 229: Block quotes (differs from the spec)
+># Foo
+>bar
+> baz
+-------- pipeline output
+<ezmark-block key="b07bd6e6d91954aa"></ezmark-block>
+<blockquote>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<p>bar
+baz</p>
+</blockquote>
+
+======== example 230: Block quotes (differs from the spec)
+   > # Foo
+   > bar
+ > baz
+-------- pipeline output
+<ezmark-block key="e2efb8dec4fa81dc"></ezmark-block>
+<blockquote>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<p>bar
+baz</p>
+</blockquote>
+
+======== example 231: Block quotes (same as the spec)
+    > # Foo
+    > bar
+    > baz
+-------- pipeline output
+<ezmark-block key="8a0d3515a62d3364"></ezmark-block>
+<pre><code>&gt; # Foo
+&gt; bar
+&gt; baz
+</code></pre>
+
+======== example 232: Block quotes (differs from the spec)
+> # Foo
+> bar
+baz
+-------- pipeline output
+<ezmark-block key="411f36230584ab12"></ezmark-block>
+<blockquote>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+<p>bar
+baz</p>
+</blockquote>
+
+======== example 233: Block quotes (same as the spec)
+> bar
+baz
+> foo
+-------- pipeline output
+<ezmark-block key="6522ae0302d03b27"></ezmark-block>
+<blockquote>
+<p>bar
+baz
+foo</p>
+</blockquote>
+
+======== example 234: Block quotes (differs from the spec)
+> foo
+---
+-------- pipeline output
+<ezmark-block key="38907a23ac5ba55d"></ezmark-block>
+<blockquote>
+<p>foo</p>
+</blockquote>
+<ezmark-block key="de7cc417de1b3246"></ezmark-block>
+<hr>
+
+======== example 235: Block quotes (same as the spec)
+> - foo
+- bar
+-------- pipeline output
+<ezmark-block key="069d99c936fd152e"></ezmark-block>
+<blockquote>
+<ul>
+<li>foo</li>
+</ul>
+</blockquote>
+<ezmark-block key="9b344314611304ad"></ezmark-block>
+<ul>
+<li>bar</li>
+</ul>
+
+======== example 236: Block quotes (same as the spec)
+>     foo
+    bar
+-------- pipeline output
+<ezmark-block key="681b45283d43246d"></ezmark-block>
+<blockquote>
+<pre><code>foo
+</code></pre>
+</blockquote>
+<ezmark-block key="c9fa4028810eca2a"></ezmark-block>
+<pre><code>bar
+</code></pre>
+
+======== example 237: Block quotes (same as the spec)
+> ```
+foo
+```
+-------- pipeline output
+<ezmark-block key="26972f23a1fe8071"></ezmark-block>
+<blockquote>
+<pre><code></code></pre>
+</blockquote>
+<ezmark-block key="dcb27518fed9d577"></ezmark-block>
+<p>foo</p>
+<ezmark-block key="eee8d219096ac717"></ezmark-block>
+<pre><code></code></pre>
+
+======== example 238: Block quotes (same as the spec)
+> foo
+    - bar
+-------- pipeline output
+<ezmark-block key="1068e54db648596d"></ezmark-block>
+<blockquote>
+<p>foo
+- bar</p>
+</blockquote>
+
+======== example 239: Block quotes (same as the spec)
+>
+-------- pipeline output
+<ezmark-block key="af63b34c8601a6e1"></ezmark-block>
+<blockquote>
+</blockquote>
+
+======== example 240: Block quotes (same as the spec)
+>
+>  
+> 
+-------- pipeline output
+<ezmark-block key="c6f8f2afa8d60a79"></ezmark-block>
+<blockquote>
+</blockquote>
+
+======== example 241: Block quotes (same as the spec)
+>
+> foo
+>  
+-------- pipeline output
+<ezmark-block key="7404e5fd8028c47d"></ezmark-block>
+<blockquote>
+<p>foo</p>
+</blockquote>
+
+======== example 242: Block quotes (same as the spec)
+> foo
+
+> bar
+-------- pipeline output
+<ezmark-block key="38907a23ac5ba55d"></ezmark-block>
+<blockquote>
+<p>foo</p>
+</blockquote>
+<ezmark-block key="1466e123977213fc"></ezmark-block>
+<blockquote>
+<p>bar</p>
+</blockquote>
+
+======== example 243: Block quotes (same as the spec)
+> foo
+> bar
+-------- pipeline output
+<ezmark-block key="b866c349cc8a49cc"></ezmark-block>
+<blockquote>
+<p>foo
+bar</p>
+</blockquote>
+
+======== example 244: Block quotes (same as the spec)
+> foo
+>
+> bar
+-------- pipeline output
+<ezmark-block key="17bb7001d6f47508"></ezmark-block>
+<blockquote>
+<p>foo</p>
+<p>bar</p>
+</blockquote>
+
+======== example 245: Block quotes (same as the spec)
+foo
+> bar
+-------- pipeline output
+<ezmark-block key="dcb27518fed9d577"></ezmark-block>
+<p>foo</p>
+<ezmark-block key="1466e123977213fc"></ezmark-block>
+<blockquote>
+<p>bar</p>
+</blockquote>
+
+======== example 246: Block quotes (differs from the spec)
+> aaa
+***
+> bbb
+-------- pipeline output
+<ezmark-block key="1fa419239e8af7bc"></ezmark-block>
+<blockquote>
+<p>aaa</p>
+</blockquote>
+<ezmark-block key="1a3b8617ffb1dc4d"></ezmark-block>
+<hr>
+<ezmark-block key="1463eb23976fef23"></ezmark-block>
+<blockquote>
+<p>bbb</p>
+</blockquote>
+
+======== example 247: Block quotes (same as the spec)
+> bar
+baz
+-------- pipeline output
+<ezmark-block key="84bb236521c20d4b"></ezmark-block>
+<blockquote>
+<p>bar
+baz</p>
+</blockquote>
+
+======== example 248: Block quotes (same as the spec)
+> bar
+
+baz
+-------- pipeline output
+<ezmark-block key="1466e123977213fc"></ezmark-block>
+<blockquote>
+<p>bar</p>
+</blockquote>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 249: Block quotes (same as the spec)
+> bar
+>
+baz
+-------- pipeline output
+<ezmark-block key="f03a0ae190e4b6f4"></ezmark-block>
+<blockquote>
+<p>bar</p>
+</blockquote>
+<ezmark-block key="00392c1913393882"></ezmark-block>
+<p>baz</p>
+
+======== example 250: Block quotes (same as the spec)
+> > > foo
+bar
+-------- pipeline output
+<ezmark-block key="cbed4daa71ec5e7a"></ezmark-block>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>foo
+bar</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+======== example 251: Block quotes (same as the spec)
+>>> foo
+> bar
+>>baz
+-------- pipeline output
+<ezmark-block key="dd19bfdb2e87f3e7"></ezmark-block>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>foo
+bar
+baz</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+======== example 252: Block quotes (same as the spec)
+>     code
+
+>    not code
+-------- pipeline output
+<ezmark-block key="8d278f3aabbba51a"></ezmark-block>
+<blockquote>
+<pre><code>code
+</code></pre>
+</blockquote>
+<ezmark-block key="ff9108defee29e2f"></ezmark-block>
+<blockquote>
+<p>not code</p>
+</blockquote>
+
+======== example 253: List items (same as the spec)
+A paragraph
+with two lines.
+
+    indented code
+
+> A block quote.
+-------- pipeline output
+<ezmark-block key="bc18bddf81158751"></ezmark-block>
+<p>A paragraph
+with two lines.</p>
+<ezmark-block key="7981b0aa699c5883"></ezmark-block>
+<pre><code>indented code
+</code></pre>
+<ezmark-block key="b79c4c5d3fca73db"></ezmark-block>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+
+======== example 254: List items (same as the spec)
+1.  A paragraph
+    with two lines.
+
+        indented code
+
+    > A block quote.
+-------- pipeline output
+<ezmark-block key="ccf784409daa6e5e"></ezmark-block>
+<ol>
+<li>
+<p>A paragraph
+with two lines.</p>
+<pre><code>indented code
+</code></pre>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 255: List items (same as the spec)
+- one
+
+ two
+-------- pipeline output
+<ezmark-block key="8148c11452695efc"></ezmark-block>
+<ul>
+<li>one</li>
+</ul>
+<ezmark-block key="614b42729e332e47"></ezmark-block>
+<p>two</p>
+
+======== example 256: List items (same as the spec)
+- one
+
+  two
+-------- pipeline output
+<ezmark-block key="3aceeef61f0bceb2"></ezmark-block>
+<ul>
+<li>
+<p>one</p>
+<p>two</p>
+</li>
+</ul>
+
+======== example 257: List items (same as the spec)
+ -    one
+
+     two
+-------- pipeline output
+<ezmark-block key="08767ff3ba7b987e"></ezmark-block>
+<ul>
+<li>one</li>
+</ul>
+<ezmark-block key="a0af70ae8d2ca357"></ezmark-block>
+<pre><code> two
+</code></pre>
+
+======== example 258: List items (same as the spec)
+ -    one
+
+      two
+-------- pipeline output
+<ezmark-block key="2f9e6861627d3d10"></ezmark-block>
+<ul>
+<li>
+<p>one</p>
+<p>two</p>
+</li>
+</ul>
+
+======== example 259: List items (same as the spec)
+   > > 1.  one
+>>
+>>     two
+-------- pipeline output
+<ezmark-block key="01cc9292ce259096"></ezmark-block>
+<blockquote>
+<blockquote>
+<ol>
+<li>
+<p>one</p>
+<p>two</p>
+</li>
+</ol>
+</blockquote>
+</blockquote>
+
+======== example 260: List items (same as the spec)
+>>- one
+>>
+  >  > two
+-------- pipeline output
+<ezmark-block key="0226a902acb76e7a"></ezmark-block>
+<blockquote>
+<blockquote>
+<ul>
+<li>one</li>
+</ul>
+<p>two</p>
+</blockquote>
+</blockquote>
+
+======== example 261: List items (same as the spec)
+-one
+
+2.two
+-------- pipeline output
+<ezmark-block key="6525e58fac3d2c8c"></ezmark-block>
+<p>-one</p>
+<ezmark-block key="8bd41dc2dd1cac65"></ezmark-block>
+<p>2.two</p>
+
+======== example 262: List items (same as the spec)
+- foo
+
+
+  bar
+-------- pipeline output
+<ezmark-block key="158771855e463c93"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<p>bar</p>
+</li>
+</ul>
+
+======== example 263: List items (same as the spec)
+1.  foo
+
+    ```
+    bar
+    ```
+
+    baz
+
+    > bam
+-------- pipeline output
+<ezmark-block key="e325263ff60fc0d6"></ezmark-block>
+<ol>
+<li>
+<p>foo</p>
+<pre><code>bar
+</code></pre>
+<p>baz</p>
+<blockquote>
+<p>bam</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 264: List items (same as the spec)
+- Foo
+
+      bar
+
+
+      baz
+-------- pipeline output
+<ezmark-block key="7a5a78a4f126e056"></ezmark-block>
+<ul>
+<li>
+<p>Foo</p>
+<pre><code>bar
+
+
+baz
+</code></pre>
+</li>
+</ul>
+
+======== example 265: List items (same as the spec)
+123456789. ok
+-------- pipeline output
+<ezmark-block key="ffec3c81096fd254"></ezmark-block>
+<ol start="123456789">
+<li>ok</li>
+</ol>
+
+======== example 266: List items (same as the spec)
+1234567890. not ok
+-------- pipeline output
+<ezmark-block key="84d3abdaf7e8b46f"></ezmark-block>
+<p>1234567890. not ok</p>
+
+======== example 267: List items (same as the spec)
+0. ok
+-------- pipeline output
+<ezmark-block key="451d48b135292c1b"></ezmark-block>
+<ol start="0">
+<li>ok</li>
+</ol>
+
+======== example 268: List items (same as the spec)
+003. ok
+-------- pipeline output
+<ezmark-block key="c7b75885fab6e29e"></ezmark-block>
+<ol start="3">
+<li>ok</li>
+</ol>
+
+======== example 269: List items (same as the spec)
+-1. not ok
+-------- pipeline output
+<ezmark-block key="fd4add1bf1f149c0"></ezmark-block>
+<p>-1. not ok</p>
+
+======== example 270: List items (same as the spec)
+- foo
+
+      bar
+-------- pipeline output
+<ezmark-block key="69af37cede551fd9"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<pre><code>bar
+</code></pre>
+</li>
+</ul>
+
+======== example 271: List items (same as the spec)
+  10.  foo
+
+           bar
+-------- pipeline output
+<ezmark-block key="425b88bb30954457"></ezmark-block>
+<ol start="10">
+<li>
+<p>foo</p>
+<pre><code>bar
+</code></pre>
+</li>
+</ol>
+
+======== example 272: List items (same as the spec)
+    indented code
+
+paragraph
+
+    more code
+-------- pipeline output
+<ezmark-block key="7981b0aa699c5883"></ezmark-block>
+<pre><code>indented code
+</code></pre>
+<ezmark-block key="b0d8560183547fb9"></ezmark-block>
+<p>paragraph</p>
+<ezmark-block key="badeda7d034c0005"></ezmark-block>
+<pre><code>more code
+</code></pre>
+
+======== example 273: List items (same as the spec)
+1.     indented code
+
+   paragraph
+
+       more code
+-------- pipeline output
+<ezmark-block key="965f4d3f05eb9e46"></ezmark-block>
+<ol>
+<li>
+<pre><code>indented code
+</code></pre>
+<p>paragraph</p>
+<pre><code>more code
+</code></pre>
+</li>
+</ol>
+
+======== example 274: List items (same as the spec)
+1.      indented code
+
+   paragraph
+
+       more code
+-------- pipeline output
+<ezmark-block key="3178a13996effb0a"></ezmark-block>
+<ol>
+<li>
+<pre><code> indented code
+</code></pre>
+<p>paragraph</p>
+<pre><code>more code
+</code></pre>
+</li>
+</ol>
+
+======== example 275: List items (same as the spec)
+   foo
+
+bar
+-------- pipeline output
+<ezmark-block key="66700b41400d6b11"></ezmark-block>
+<p>foo</p>
+<ezmark-block key="003934191339461a"></ezmark-block>
+<p>bar</p>
+
+======== example 276: List items (same as the spec)
+-    foo
+
+  bar
+-------- pipeline output
+<ezmark-block key="4925505f3fec0a60"></ezmark-block>
+<ul>
+<li>foo</li>
+</ul>
+<ezmark-block key="2005eb7ce64000d2"></ezmark-block>
+<p>bar</p>
+
+======== example 277: List items (same as the spec)
+-  foo
+
+   bar
+-------- pipeline output
+<ezmark-block key="295750645ce3b751"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<p>bar</p>
+</li>
+</ul>
+
+======== example 278: List items (same as the spec)
+-
+  foo
+-
+  ```
+  bar
+  ```
+-
+      baz
+-------- pipeline output
+<ezmark-block key="c113c998bff25012"></ezmark-block>
+<ul>
+<li>foo</li>
+<li>
+<pre><code>bar
+</code></pre>
+</li>
+<li>
+<pre><code>baz
+</code></pre>
+</li>
+</ul>
+
+======== example 279: List items (same as the spec)
+-   
+  foo
+-------- pipeline output
+<ezmark-block key="212e606b0c734126"></ezmark-block>
+<ul>
+<li>foo</li>
+</ul>
+
+======== example 280: List items (same as the spec)
+-
+
+  foo
+-------- pipeline output
+<ezmark-block key="af63a04c86018698"></ezmark-block>
+<ul>
+<li></li>
+</ul>
+<ezmark-block key="ff425c7cd439a96f"></ezmark-block>
+<p>foo</p>
+
+======== example 281: List items (same as the spec)
+- foo
+-
+- bar
+-------- pipeline output
+<ezmark-block key="884824dc72534181"></ezmark-block>
+<ul>
+<li>foo</li>
+<li></li>
+<li>bar</li>
+</ul>
+
+======== example 282: List items (same as the spec)
+- foo
+-   
+- bar
+-------- pipeline output
+<ezmark-block key="e4844300eb003e3f"></ezmark-block>
+<ul>
+<li>foo</li>
+<li></li>
+<li>bar</li>
+</ul>
+
+======== example 283: List items (same as the spec)
+1. foo
+2.
+3. bar
+-------- pipeline output
+<ezmark-block key="22c2571da36ab23e"></ezmark-block>
+<ol>
+<li>foo</li>
+<li></li>
+<li>bar</li>
+</ol>
+
+======== example 284: List items (same as the spec)
+*
+-------- pipeline output
+<ezmark-block key="af63a74c8601927d"></ezmark-block>
+<ul>
+<li></li>
+</ul>
+
+======== example 285: List items (same as the spec)
+foo
+*
+
+foo
+1.
+-------- pipeline output
+<ezmark-block key="cc229cafa42adbd7"></ezmark-block>
+<p>foo
+*</p>
+<ezmark-block key="09ca9573f4ed6564"></ezmark-block>
+<p>foo
+1.</p>
+
+======== example 286: List items (same as the spec)
+ 1.  A paragraph
+     with two lines.
+
+         indented code
+
+     > A block quote.
+-------- pipeline output
+<ezmark-block key="4703105a484ea836"></ezmark-block>
+<ol>
+<li>
+<p>A paragraph
+with two lines.</p>
+<pre><code>indented code
+</code></pre>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 287: List items (same as the spec)
+  1.  A paragraph
+      with two lines.
+
+          indented code
+
+      > A block quote.
+-------- pipeline output
+<ezmark-block key="6edc14600f6ac30e"></ezmark-block>
+<ol>
+<li>
+<p>A paragraph
+with two lines.</p>
+<pre><code>indented code
+</code></pre>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 288: List items (same as the spec)
+   1.  A paragraph
+       with two lines.
+
+           indented code
+
+       > A block quote.
+-------- pipeline output
+<ezmark-block key="7ff393abea4ad906"></ezmark-block>
+<ol>
+<li>
+<p>A paragraph
+with two lines.</p>
+<pre><code>indented code
+</code></pre>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 289: List items (same as the spec)
+    1.  A paragraph
+        with two lines.
+
+            indented code
+
+        > A block quote.
+-------- pipeline output
+<ezmark-block key="56e16edfd2b4d87e"></ezmark-block>
+<pre><code>1.  A paragraph
+    with two lines.
+
+        indented code
+
+    &gt; A block quote.
+</code></pre>
+
+======== example 290: List items (same as the spec)
+  1.  A paragraph
+with two lines.
+
+          indented code
+
+      > A block quote.
+-------- pipeline output
+<ezmark-block key="31a534f35e272256"></ezmark-block>
+<ol>
+<li>
+<p>A paragraph
+with two lines.</p>
+<pre><code>indented code
+</code></pre>
+<blockquote>
+<p>A block quote.</p>
+</blockquote>
+</li>
+</ol>
+
+======== example 291: List items (same as the spec)
+  1.  A paragraph
+    with two lines.
+-------- pipeline output
+<ezmark-block key="236b0ecb9ffe5a94"></ezmark-block>
+<ol>
+<li>A paragraph
+with two lines.</li>
+</ol>
+
+======== example 292: List items (same as the spec)
+> 1. > Blockquote
+continued here.
+-------- pipeline output
+<ezmark-block key="116b9efdef946ff8"></ezmark-block>
+<blockquote>
+<ol>
+<li>
+<blockquote>
+<p>Blockquote
+continued here.</p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+
+======== example 293: List items (same as the spec)
+> 1. > Blockquote
+> continued here.
+-------- pipeline output
+<ezmark-block key="dd6955c36505f832"></ezmark-block>
+<blockquote>
+<ol>
+<li>
+<blockquote>
+<p>Blockquote
+continued here.</p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+
+======== example 294: List items (same as the spec)
+- foo
+  - bar
+    - baz
+      - boo
+-------- pipeline output
+<ezmark-block key="0892a8f817c35341"></ezmark-block>
+<ul>
+<li>foo
+<ul>
+<li>bar
+<ul>
+<li>baz
+<ul>
+<li>boo</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+======== example 295: List items (same as the spec)
+- foo
+ - bar
+  - baz
+   - boo
+-------- pipeline output
+<ezmark-block key="d4bea5275444ae51"></ezmark-block>
+<ul>
+<li>foo</li>
+<li>bar</li>
+<li>baz</li>
+<li>boo</li>
+</ul>
+
+======== example 296: List items (same as the spec)
+10) foo
+    - bar
+-------- pipeline output
+<ezmark-block key="a218592fff05b8bb"></ezmark-block>
+<ol start="10">
+<li>foo
+<ul>
+<li>bar</li>
+</ul>
+</li>
+</ol>
+
+======== example 297: List items (same as the spec)
+10) foo
+   - bar
+-------- pipeline output
+<ezmark-block key="8b2597904d826c67"></ezmark-block>
+<ol start="10">
+<li>foo</li>
+</ol>
+<ezmark-block key="f7fa8d40da5a0a6b"></ezmark-block>
+<ul>
+<li>bar</li>
+</ul>
+
+======== example 298: List items (same as the spec)
+- - foo
+-------- pipeline output
+<ezmark-block key="a47904eb66e0cfef"></ezmark-block>
+<ul>
+<li>
+<ul>
+<li>foo</li>
+</ul>
+</li>
+</ul>
+
+======== example 299: List items (same as the spec)
+1. - 2. foo
+-------- pipeline output
+<ezmark-block key="b6209f21edf6afbb"></ezmark-block>
+<ol>
+<li>
+<ul>
+<li>
+<ol start="2">
+<li>foo</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+
+======== example 300: List items (differs from the spec)
+- # Foo
+- Bar
+  ---
+  baz
+-------- pipeline output
+<ezmark-block key="34d775a37aa64fb1"></ezmark-block>
+<ul>
+<li>
+<h1 id="user-content-foo">Foo<a href="#user-content-foo" aria-label="Link to heading 'Foo'" class="anchor" rel="noopener noreferrer"></a></h1>
+</li>
+<li>
+<h2 id="user-content-bar">Bar<a href="#user-content-bar" aria-label="Link to heading 'Bar'" class="anchor" rel="noopener noreferrer"></a></h2>
+baz</li>
+</ul>
+
+======== example 301: Lists (same as the spec)
+- foo
+- bar
++ baz
+-------- pipeline output
+<ezmark-block key="57838bf655fd9474"></ezmark-block>
+<ul>
+<li>foo</li>
+<li>bar</li>
+</ul>
+<ezmark-block key="ef065e14774f1eaf"></ezmark-block>
+<ul>
+<li>baz</li>
+</ul>
+
+======== example 302: Lists (same as the spec)
+1. foo
+2. bar
+3) baz
+-------- pipeline output
+<ezmark-block key="0260234e814cb205"></ezmark-block>
+<ol>
+<li>foo</li>
+<li>bar</li>
+</ol>
+<ezmark-block key="ca9c4e22c1b10a84"></ezmark-block>
+<ol start="3">
+<li>baz</li>
+</ol>
+
+======== example 303: Lists (same as the spec)
+Foo
+- bar
+- baz
+-------- pipeline output
+<ezmark-block key="f2bb95199c92e1d7"></ezmark-block>
+<p>Foo</p>
+<ezmark-block key="5843093616a786b5"></ezmark-block>
+<ul>
+<li>bar</li>
+<li>baz</li>
+</ul>
+
+======== example 304: Lists (same as the spec)
+The number of windows in my house is
+14.  The number of doors is 6.
+-------- pipeline output
+<ezmark-block key="e03bac38f4f6a80d"></ezmark-block>
+<p>The number of windows in my house is
+14.  The number of doors is 6.</p>
+
+======== example 305: Lists (same as the spec)
+The number of windows in my house is
+1.  The number of doors is 6.
+-------- pipeline output
+<ezmark-block key="df20a0104b66f8cc"></ezmark-block>
+<p>The number of windows in my house is</p>
+<ezmark-block key="d138376da0853722"></ezmark-block>
+<ol>
+<li>The number of doors is 6.</li>
+</ol>
+
+======== example 306: Lists (same as the spec)
+- foo
+
+- bar
+
+
+- baz
+-------- pipeline output
+<ezmark-block key="5e75f1a5679f77d2"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+</li>
+<li>
+<p>bar</p>
+</li>
+<li>
+<p>baz</p>
+</li>
+</ul>
+
+======== example 307: Lists (same as the spec)
+- foo
+  - bar
+    - baz
+
+
+      bim
+-------- pipeline output
+<ezmark-block key="c41bb5ffeeb404ea"></ezmark-block>
+<ul>
+<li>foo
+<ul>
+<li>bar
+<ul>
+<li>
+<p>baz</p>
+<p>bim</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+======== example 308: Lists (differs from the spec)
+- foo
+- bar
+
+<!-- -->
+
+- baz
+- bim
+-------- pipeline output
+<ezmark-block key="57838bf655fd9474"></ezmark-block>
+<ul>
+<li>foo</li>
+<li>bar</li>
+</ul>
+<ezmark-block key="238b9be89a2d55d4"></ezmark-block>
+
+<ezmark-block key="d3fb8ddf91206fb0"></ezmark-block>
+<ul>
+<li>baz</li>
+<li>bim</li>
+</ul>
+
+======== example 309: Lists (differs from the spec)
+-   foo
+
+    notcode
+
+-   foo
+
+<!-- -->
+
+    code
+-------- pipeline output
+<ezmark-block key="a849a2ef4a849da7"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<p>notcode</p>
+</li>
+<li>
+<p>foo</p>
+</li>
+</ul>
+<ezmark-block key="238b9be89a2d55d4"></ezmark-block>
+
+<ezmark-block key="357d25cc6ae87ea4"></ezmark-block>
+<pre><code>code
+</code></pre>
+
+======== example 310: Lists (same as the spec)
+- a
+ - b
+  - c
+   - d
+  - e
+ - f
+- g
+-------- pipeline output
+<ezmark-block key="bb9ceaa6e8eaf66c"></ezmark-block>
+<ul>
+<li>a</li>
+<li>b</li>
+<li>c</li>
+<li>d</li>
+<li>e</li>
+<li>f</li>
+<li>g</li>
+</ul>
+
+======== example 311: Lists (same as the spec)
+1. a
+
+  2. b
+
+   3. c
+-------- pipeline output
+<ezmark-block key="19e23d9d07869ab5"></ezmark-block>
+<ol>
+<li>
+<p>a</p>
+</li>
+<li>
+<p>b</p>
+</li>
+<li>
+<p>c</p>
+</li>
+</ol>
+
+======== example 312: Lists (same as the spec)
+- a
+ - b
+  - c
+   - d
+    - e
+-------- pipeline output
+<ezmark-block key="619786df51da9079"></ezmark-block>
+<ul>
+<li>a</li>
+<li>b</li>
+<li>c</li>
+<li>d
+- e</li>
+</ul>
+
+======== example 313: Lists (same as the spec)
+1. a
+
+  2. b
+
+    3. c
+-------- pipeline output
+<ezmark-block key="be8bfdcea50f1ce7"></ezmark-block>
+<ol>
+<li>
+<p>a</p>
+</li>
+<li>
+<p>b</p>
+</li>
+</ol>
+<ezmark-block key="050600303bf9d20d"></ezmark-block>
+<pre><code>3. c
+</code></pre>
+
+======== example 314: Lists (same as the spec)
+- a
+- b
+
+- c
+-------- pipeline output
+<ezmark-block key="027e394e0bbe5de2"></ezmark-block>
+<ul>
+<li>
+<p>a</p>
+</li>
+<li>
+<p>b</p>
+</li>
+<li>
+<p>c</p>
+</li>
+</ul>
+
+======== example 315: Lists (same as the spec)
+* a
+*
+
+* c
+-------- pipeline output
+<ezmark-block key="851eb4e2e948ab19"></ezmark-block>
+<ul>
+<li>
+<p>a</p>
+</li>
+<li></li>
+<li>
+<p>c</p>
+</li>
+</ul>
+
+======== example 316: Lists (same as the spec)
+- a
+- b
+
+  c
+- d
+-------- pipeline output
+<ezmark-block key="c029bbf521457fc0"></ezmark-block>
+<ul>
+<li>
+<p>a</p>
+</li>
+<li>
+<p>b</p>
+<p>c</p>
+</li>
+<li>
+<p>d</p>
+</li>
+</ul>
+
+======== example 317: Lists (same as the spec)
+- a
+- b
+
+  [ref]: /url
+- d
+-------- pipeline output
+<ezmark-block key="b14ebb59c7a1bf04"></ezmark-block>
+<ul>
+<li>
+<p>a</p>
+</li>
+<li>
+<p>b</p>
+</li>
+<li>
+<p>d</p>
+</li>
+</ul>
+
+======== example 318: Lists (same as the spec)
+- a
+- ```
+  b
+
+
+  ```
+- c
+-------- pipeline output
+<ezmark-block key="2a4b39de5f38fe28"></ezmark-block>
+<ul>
+<li>a</li>
+<li>
+<pre><code>b
+
+
+</code></pre>
+</li>
+<li>c</li>
+</ul>
+
+======== example 319: Lists (same as the spec)
+- a
+  - b
+
+    c
+- d
+-------- pipeline output
+<ezmark-block key="dafcc04b2cb986c8"></ezmark-block>
+<ul>
+<li>a
+<ul>
+<li>
+<p>b</p>
+<p>c</p>
+</li>
+</ul>
+</li>
+<li>d</li>
+</ul>
+
+======== example 320: Lists (same as the spec)
+* a
+  > b
+  >
+* c
+-------- pipeline output
+<ezmark-block key="764421f2dc08f109"></ezmark-block>
+<ul>
+<li>a
+<blockquote>
+<p>b</p>
+</blockquote>
+</li>
+<li>c</li>
+</ul>
+
+======== example 321: Lists (same as the spec)
+- a
+  > b
+  ```
+  c
+  ```
+- d
+-------- pipeline output
+<ezmark-block key="ad7e5414b62ea98f"></ezmark-block>
+<ul>
+<li>a
+<blockquote>
+<p>b</p>
+</blockquote>
+<pre><code>c
+</code></pre>
+</li>
+<li>d</li>
+</ul>
+
+======== example 322: Lists (same as the spec)
+- a
+-------- pipeline output
+<ezmark-block key="de870417de23f38b"></ezmark-block>
+<ul>
+<li>a</li>
+</ul>
+
+======== example 323: Lists (same as the spec)
+- a
+  - b
+-------- pipeline output
+<ezmark-block key="0ca12d5354add5dc"></ezmark-block>
+<ul>
+<li>a
+<ul>
+<li>b</li>
+</ul>
+</li>
+</ul>
+
+======== example 324: Lists (same as the spec)
+1. ```
+   foo
+   ```
+
+   bar
+-------- pipeline output
+<ezmark-block key="283e5949c56ba40b"></ezmark-block>
+<ol>
+<li>
+<pre><code>foo
+</code></pre>
+<p>bar</p>
+</li>
+</ol>
+
+======== example 325: Lists (same as the spec)
+* foo
+  * bar
+
+  baz
+-------- pipeline output
+<ezmark-block key="f201006522ddc64d"></ezmark-block>
+<ul>
+<li>
+<p>foo</p>
+<ul>
+<li>bar</li>
+</ul>
+<p>baz</p>
+</li>
+</ul>
+
+======== example 326: Lists (same as the spec)
+- a
+  - b
+  - c
+
+- d
+  - e
+  - f
+-------- pipeline output
+<ezmark-block key="870202b7c351994e"></ezmark-block>
+<ul>
+<li>
+<p>a</p>
+<ul>
+<li>b</li>
+<li>c</li>
+</ul>
+</li>
+<li>
+<p>d</p>
+<ul>
+<li>e</li>
+<li>f</li>
+</ul>
+</li>
+</ul>
+
+======== example 327: Inlines (same as the spec)
+`hi`lo`
+-------- pipeline output
+<ezmark-block key="edfeb3dc9d6be297"></ezmark-block>
+<p><code>hi</code>lo`</p>
+
+======== example 328: Code spans (same as the spec)
+`foo`
+-------- pipeline output
+<ezmark-block key="92e9bb020b7946eb"></ezmark-block>
+<p><code>foo</code></p>
+
+======== example 329: Code spans (same as the spec)
+`` foo ` bar ``
+-------- pipeline output
+<ezmark-block key="8775db850496d37c"></ezmark-block>
+<p><code>foo ` bar</code></p>
+
+======== example 330: Code spans (same as the spec)
+` `` `
+-------- pipeline output
+<ezmark-block key="be8e1f126743a07d"></ezmark-block>
+<p><code>``</code></p>
+
+======== example 331: Code spans (same as the spec)
+`  ``  `
+-------- pipeline output
+<ezmark-block key="f65352a4b47361c5"></ezmark-block>
+<p><code> `` </code></p>
+
+======== example 332: Code spans (same as the spec)
+` a`
+-------- pipeline output
+<ezmark-block key="37b51189c7df890c"></ezmark-block>
+<p><code> a</code></p>
+
+======== example 333: Code spans (differs from the spec)
+` b `
+-------- pipeline output
+<ezmark-block key="ba9e9dbc62ad098d"></ezmark-block>
+<p><code>&nbsp;b&nbsp;</code></p>
+
+======== example 334: Code spans (differs from the spec)
+` `
+`  `
+-------- pipeline output
+<ezmark-block key="249c1a057b0c4a7f"></ezmark-block>
+<p><code>&nbsp;</code>
+<code>  </code></p>
+
+======== example 335: Code spans (same as the spec)
+``
+foo
+bar  
+baz
+``
+-------- pipeline output
+<ezmark-block key="af41bf12fd7213cf"></ezmark-block>
+<p><code>foo bar   baz</code></p>
+
+======== example 336: Code spans (same as the spec)
+``
+foo 
+``
+-------- pipeline output
+<ezmark-block key="1bceb775e21ce855"></ezmark-block>
+<p><code>foo </code></p>
+
+======== example 337: Code spans (same as the spec)
+`foo   bar 
+baz`
+-------- pipeline output
+<ezmark-block key="2754b38fe47b1a29"></ezmark-block>
+<p><code>foo   bar  baz</code></p>
+
+======== example 338: Code spans (same as the spec)
+`foo\`bar`
+-------- pipeline output
+<ezmark-block key="425fb22da50a8726"></ezmark-block>
+<p><code>foo\</code>bar`</p>
+
+======== example 339: Code spans (same as the spec)
+``foo`bar``
+-------- pipeline output
+<ezmark-block key="77ae40fb65557172"></ezmark-block>
+<p><code>foo`bar</code></p>
+
+======== example 340: Code spans (same as the spec)
+` foo `` bar `
+-------- pipeline output
+<ezmark-block key="57b65aea0bc74540"></ezmark-block>
+<p><code>foo `` bar</code></p>
+
+======== example 341: Code spans (same as the spec)
+*foo`*`
+-------- pipeline output
+<ezmark-block key="c01c78b6e48cb15f"></ezmark-block>
+<p>*foo<code>*</code></p>
+
+======== example 342: Code spans (same as the spec)
+[not a `link](/foo`)
+-------- pipeline output
+<ezmark-block key="465162baf7427805"></ezmark-block>
+<p>[not a <code>link](/foo</code>)</p>
+
+======== example 343: Code spans (differs from the spec)
+`<a href="`">`
+-------- pipeline output
+<ezmark-block key="61066a18104ab22e"></ezmark-block>
+<p><code>&lt;a href="</code>"&gt;`</p>
+
+======== example 344: Code spans (differs from the spec)
+<a href="`">`
+-------- pipeline output
+<ezmark-block key="69a3ce2fcc154dd4"></ezmark-block>
+<p><a href="`" rel="noopener noreferrer">`</a></p><a href="`" rel="noopener noreferrer">
+</a>
+
+======== example 345: Code spans (same as the spec)
+`<https://foo.bar.`baz>`
+-------- pipeline output
+<ezmark-block key="906707ab39c725ee"></ezmark-block>
+<p><code>&lt;https://foo.bar.</code>baz&gt;`</p>
+
+======== example 346: Code spans (differs from the spec)
+<https://foo.bar.`baz>`
+-------- pipeline output
+<ezmark-block key="270ecab6905b24d8"></ezmark-block>
+<p><a href="https://foo.bar.%60baz" rel="noopener noreferrer">https://foo.bar.`baz</a>`</p>
+
+======== example 347: Code spans (same as the spec)
+```foo``
+-------- pipeline output
+<ezmark-block key="091ac0e1e8c41d79"></ezmark-block>
+<p>```foo``</p>
+
+======== example 348: Code spans (same as the spec)
+`foo
+-------- pipeline output
+<ezmark-block key="2e06828ae45dd989"></ezmark-block>
+<p>`foo</p>
+
+======== example 349: Code spans (same as the spec)
+`foo``bar``
+-------- pipeline output
+<ezmark-block key="7e81e7b16d94d56e"></ezmark-block>
+<p>`foo<code>bar</code></p>
+
+======== example 350: Emphasis and strong emphasis (same as the spec)
+*foo bar*
+-------- pipeline output
+<ezmark-block key="3a93e4d9308137c8"></ezmark-block>
+<p><em>foo bar</em></p>
+
+======== example 351: Emphasis and strong emphasis (same as the spec)
+a * foo bar*
+-------- pipeline output
+<ezmark-block key="98d787b66d543243"></ezmark-block>
+<p>a * foo bar*</p>
+
+======== example 352: Emphasis and strong emphasis (differs from the spec)
+a*"foo"*
+-------- pipeline output
+<ezmark-block key="56e743b94551319c"></ezmark-block>
+<p>a*"foo"*</p>
+
+======== example 353: Emphasis and strong emphasis (differs from the spec)
+* a *
+-------- pipeline output
+<ezmark-block key="1896263c8ce6099e"></ezmark-block>
+<p>*&nbsp;a&nbsp;*</p>
+
+======== example 354: Emphasis and strong emphasis (same as the spec)
+*$*alpha.
+
+*£*bravo.
+
+*€*charlie.
+-------- pipeline output
+<ezmark-block key="03afa000bb961cd1"></ezmark-block>
+<p>*$*alpha.</p>
+<ezmark-block key="0710237a9e9972be"></ezmark-block>
+<p>*£*bravo.</p>
+<ezmark-block key="b66fa8d331331b8f"></ezmark-block>
+<p>*€*charlie.</p>
+
+======== example 355: Emphasis and strong emphasis (same as the spec)
+foo*bar*
+-------- pipeline output
+<ezmark-block key="e3c3daeb7bfcb996"></ezmark-block>
+<p>foo<em>bar</em></p>
+
+======== example 356: Emphasis and strong emphasis (same as the spec)
+5*6*78
+-------- pipeline output
+<ezmark-block key="cac54e6ef7633a01"></ezmark-block>
+<p>5<em>6</em>78</p>
+
+======== example 357: Emphasis and strong emphasis (same as the spec)
+_foo bar_
+-------- pipeline output
+<ezmark-block key="235509c441c2a15c"></ezmark-block>
+<p><em>foo bar</em></p>
+
+======== example 358: Emphasis and strong emphasis (same as the spec)
+_ foo bar_
+-------- pipeline output
+<ezmark-block key="1a2b21dfbd5dec98"></ezmark-block>
+<p>_ foo bar_</p>
+
+======== example 359: Emphasis and strong emphasis (differs from the spec)
+a_"foo"_
+-------- pipeline output
+<ezmark-block key="eb4bf28b132ec9f4"></ezmark-block>
+<p>a_"foo"_</p>
+
+======== example 360: Emphasis and strong emphasis (same as the spec)
+foo_bar_
+-------- pipeline output
+<ezmark-block key="ada115ff0a38cd06"></ezmark-block>
+<p>foo_bar_</p>
+
+======== example 361: Emphasis and strong emphasis (same as the spec)
+5_6_78
+-------- pipeline output
+<ezmark-block key="af5dadb75e1e8f2d"></ezmark-block>
+<p>5_6_78</p>
+
+======== example 362: Emphasis and strong emphasis (same as the spec)
+пристаням_стремятся_
+-------- pipeline output
+<ezmark-block key="1c5782f831ad221b"></ezmark-block>
+<p>пристаням_стремятся_</p>
+
+======== example 363: Emphasis and strong emphasis (differs from the spec)
+aa_"bb"_cc
+-------- pipeline output
+<ezmark-block key="258f58b3abd9bb5b"></ezmark-block>
+<p>aa_"bb"_cc</p>
+
+======== example 364: Emphasis and strong emphasis (same as the spec)
+foo-_(bar)_
+-------- pipeline output
+<ezmark-block key="4d1fb6c812e0639e"></ezmark-block>
+<p>foo-<em>(bar)</em></p>
+
+======== example 365: Emphasis and strong emphasis (same as the spec)
+_foo*
+-------- pipeline output
+<ezmark-block key="14b7ecb619cc846c"></ezmark-block>
+<p>_foo*</p>
+
+======== example 366: Emphasis and strong emphasis (same as the spec)
+*foo bar *
+-------- pipeline output
+<ezmark-block key="0a71670d6b80b674"></ezmark-block>
+<p>*foo bar *</p>
+
+======== example 367: Emphasis and strong emphasis (same as the spec)
+*foo bar
+*
+-------- pipeline output
+<ezmark-block key="0af23f0d6beded66"></ezmark-block>
+<p>*foo bar
+*</p>
+
+======== example 368: Emphasis and strong emphasis (same as the spec)
+*(*foo)
+-------- pipeline output
+<ezmark-block key="0e944c1d2de473e0"></ezmark-block>
+<p>*(*foo)</p>
+
+======== example 369: Emphasis and strong emphasis (same as the spec)
+*(*foo*)*
+-------- pipeline output
+<ezmark-block key="e8b4b126e257a3ee"></ezmark-block>
+<p><em>(<em>foo</em>)</em></p>
+
+======== example 370: Emphasis and strong emphasis (same as the spec)
+*foo*bar
+-------- pipeline output
+<ezmark-block key="b35cbb87634b4230"></ezmark-block>
+<p><em>foo</em>bar</p>
+
+======== example 371: Emphasis and strong emphasis (same as the spec)
+_foo bar _
+-------- pipeline output
+<ezmark-block key="cc6edb7bbdfa262a"></ezmark-block>
+<p>_foo bar _</p>
+
+======== example 372: Emphasis and strong emphasis (same as the spec)
+_(_foo)
+-------- pipeline output
+<ezmark-block key="0be66844bd54bce8"></ezmark-block>
+<p>_(_foo)</p>
+
+======== example 373: Emphasis and strong emphasis (same as the spec)
+_(_foo_)_
+-------- pipeline output
+<ezmark-block key="6b09c68be81d01d2"></ezmark-block>
+<p><em>(<em>foo</em>)</em></p>
+
+======== example 374: Emphasis and strong emphasis (same as the spec)
+_foo_bar
+-------- pipeline output
+<ezmark-block key="a49e7423809128ac"></ezmark-block>
+<p>_foo_bar</p>
+
+======== example 375: Emphasis and strong emphasis (same as the spec)
+_пристаням_стремятся
+-------- pipeline output
+<ezmark-block key="70ffa9254e5eceaf"></ezmark-block>
+<p>_пристаням_стремятся</p>
+
+======== example 376: Emphasis and strong emphasis (same as the spec)
+_foo_bar_baz_
+-------- pipeline output
+<ezmark-block key="c78314900c49ed13"></ezmark-block>
+<p><em>foo_bar_baz</em></p>
+
+======== example 377: Emphasis and strong emphasis (same as the spec)
+_(bar)_.
+-------- pipeline output
+<ezmark-block key="025dec161fc6be47"></ezmark-block>
+<p><em>(bar)</em>.</p>
+
+======== example 378: Emphasis and strong emphasis (same as the spec)
+**foo bar**
+-------- pipeline output
+<ezmark-block key="818db36736ab75ee"></ezmark-block>
+<p><strong>foo bar</strong></p>
+
+======== example 379: Emphasis and strong emphasis (same as the spec)
+** foo bar**
+-------- pipeline output
+<ezmark-block key="d0bef6e41f9d9890"></ezmark-block>
+<p>** foo bar**</p>
+
+======== example 380: Emphasis and strong emphasis (differs from the spec)
+a**"foo"**
+-------- pipeline output
+<ezmark-block key="75d7e636adcdd5f0"></ezmark-block>
+<p>a**"foo"**</p>
+
+======== example 381: Emphasis and strong emphasis (same as the spec)
+foo**bar**
+-------- pipeline output
+<ezmark-block key="8bbcb4efe346e1e4"></ezmark-block>
+<p>foo<strong>bar</strong></p>
+
+======== example 382: Emphasis and strong emphasis (same as the spec)
+__foo bar__
+-------- pipeline output
+<ezmark-block key="1626ed997c1463be"></ezmark-block>
+<p><strong>foo bar</strong></p>
+
+======== example 383: Emphasis and strong emphasis (same as the spec)
+__ foo bar__
+-------- pipeline output
+<ezmark-block key="1dfc51782609a2a4"></ezmark-block>
+<p>__ foo bar__</p>
+
+======== example 384: Emphasis and strong emphasis (same as the spec)
+__
+foo bar__
+-------- pipeline output
+<ezmark-block key="296c1e68fc3238d6"></ezmark-block>
+<p>__
+foo bar__</p>
+
+======== example 385: Emphasis and strong emphasis (differs from the spec)
+a__"foo"__
+-------- pipeline output
+<ezmark-block key="035f8168f45a9f74"></ezmark-block>
+<p>a__"foo"__</p>
+
+======== example 386: Emphasis and strong emphasis (same as the spec)
+foo__bar__
+-------- pipeline output
+<ezmark-block key="80e48fd2ed3cc840"></ezmark-block>
+<p>foo__bar__</p>
+
+======== example 387: Emphasis and strong emphasis (same as the spec)
+5__6__78
+-------- pipeline output
+<ezmark-block key="171eb841f13d1121"></ezmark-block>
+<p>5__6__78</p>
+
+======== example 388: Emphasis and strong emphasis (same as the spec)
+пристаням__стремятся__
+-------- pipeline output
+<ezmark-block key="c0716590dd0fc9ed"></ezmark-block>
+<p>пристаням__стремятся__</p>
+
+======== example 389: Emphasis and strong emphasis (same as the spec)
+__foo, __bar__, baz__
+-------- pipeline output
+<ezmark-block key="01b60d3181db3449"></ezmark-block>
+<p><strong>foo, <strong>bar</strong>, baz</strong></p>
+
+======== example 390: Emphasis and strong emphasis (same as the spec)
+foo-__(bar)__
+-------- pipeline output
+<ezmark-block key="e0697f6b870cc3de"></ezmark-block>
+<p>foo-<strong>(bar)</strong></p>
+
+======== example 391: Emphasis and strong emphasis (same as the spec)
+**foo bar **
+-------- pipeline output
+<ezmark-block key="2598b662162fc312"></ezmark-block>
+<p>**foo bar **</p>
+
+======== example 392: Emphasis and strong emphasis (same as the spec)
+**(**foo)
+-------- pipeline output
+<ezmark-block key="9629d24567855938"></ezmark-block>
+<p>**(**foo)</p>
+
+======== example 393: Emphasis and strong emphasis (same as the spec)
+*(**foo**)*
+-------- pipeline output
+<ezmark-block key="f7bd5052230a368e"></ezmark-block>
+<p><em>(<strong>foo</strong>)</em></p>
+
+======== example 394: Emphasis and strong emphasis (same as the spec)
+**Gomphocarpus (*Gomphocarpus physocarpus*, syn.
+*Asclepias physocarpa*)**
+-------- pipeline output
+<ezmark-block key="c86f1b629f1a7acc"></ezmark-block>
+<p><strong>Gomphocarpus (<em>Gomphocarpus physocarpus</em>, syn.
+<em>Asclepias physocarpa</em>)</strong></p>
+
+======== example 395: Emphasis and strong emphasis (differs from the spec)
+**foo "*bar*" foo**
+-------- pipeline output
+<ezmark-block key="223e960070c53d0e"></ezmark-block>
+<p><strong>foo "<em>bar</em>" foo</strong></p>
+
+======== example 396: Emphasis and strong emphasis (same as the spec)
+**foo**bar
+-------- pipeline output
+<ezmark-block key="e481619eca28e3f8"></ezmark-block>
+<p><strong>foo</strong>bar</p>
+
+======== example 397: Emphasis and strong emphasis (same as the spec)
+__foo bar __
+-------- pipeline output
+<ezmark-block key="761555cf63fc4d6e"></ezmark-block>
+<p>__foo bar __</p>
+
+======== example 398: Emphasis and strong emphasis (same as the spec)
+__(__foo)
+-------- pipeline output
+<ezmark-block key="0d35270f54c98830"></ezmark-block>
+<p>__(__foo)</p>
+
+======== example 399: Emphasis and strong emphasis (same as the spec)
+_(__foo__)_
+-------- pipeline output
+<ezmark-block key="eea075352fc8c656"></ezmark-block>
+<p><em>(<strong>foo</strong>)</em></p>
+
+======== example 400: Emphasis and strong emphasis (same as the spec)
+__foo__bar
+-------- pipeline output
+<ezmark-block key="037fde6c471edb04"></ezmark-block>
+<p>__foo__bar</p>
+
+======== example 401: Emphasis and strong emphasis (same as the spec)
+__пристаням__стремятся
+-------- pipeline output
+<ezmark-block key="784f01d609175041"></ezmark-block>
+<p>__пристаням__стремятся</p>
+
+======== example 402: Emphasis and strong emphasis (same as the spec)
+__foo__bar__baz__
+-------- pipeline output
+<ezmark-block key="77dd9adeb4644af1"></ezmark-block>
+<p><strong>foo__bar__baz</strong></p>
+
+======== example 403: Emphasis and strong emphasis (same as the spec)
+__(bar)__.
+-------- pipeline output
+<ezmark-block key="4fe8f7ee27f17727"></ezmark-block>
+<p><strong>(bar)</strong>.</p>
+
+======== example 404: Emphasis and strong emphasis (differs from the spec)
+*foo [bar](/url)*
+-------- pipeline output
+<ezmark-block key="241578ccdbcd2f5f"></ezmark-block>
+<p><em>foo <a href="/url" rel="noopener noreferrer">bar</a></em></p>
+
+======== example 405: Emphasis and strong emphasis (same as the spec)
+*foo
+bar*
+-------- pipeline output
+<ezmark-block key="fef659ac31aead4e"></ezmark-block>
+<p><em>foo
+bar</em></p>
+
+======== example 406: Emphasis and strong emphasis (same as the spec)
+_foo __bar__ baz_
+-------- pipeline output
+<ezmark-block key="8ec0ab0fa3634583"></ezmark-block>
+<p><em>foo <strong>bar</strong> baz</em></p>
+
+======== example 407: Emphasis and strong emphasis (same as the spec)
+_foo _bar_ baz_
+-------- pipeline output
+<ezmark-block key="d13cc4c0405877ed"></ezmark-block>
+<p><em>foo <em>bar</em> baz</em></p>
+
+======== example 408: Emphasis and strong emphasis (same as the spec)
+__foo_ bar_
+-------- pipeline output
+<ezmark-block key="0875137276340a64"></ezmark-block>
+<p><em><em>foo</em> bar</em></p>
+
+======== example 409: Emphasis and strong emphasis (same as the spec)
+*foo *bar**
+-------- pipeline output
+<ezmark-block key="8a046c5bfeadef6e"></ezmark-block>
+<p><em>foo <em>bar</em></em></p>
+
+======== example 410: Emphasis and strong emphasis (same as the spec)
+*foo **bar** baz*
+-------- pipeline output
+<ezmark-block key="95f99256fdc21d53"></ezmark-block>
+<p><em>foo <strong>bar</strong> baz</em></p>
+
+======== example 411: Emphasis and strong emphasis (same as the spec)
+*foo**bar**baz*
+-------- pipeline output
+<ezmark-block key="91e990c4f5faf5d1"></ezmark-block>
+<p><em>foo<strong>bar</strong>baz</em></p>
+
+======== example 412: Emphasis and strong emphasis (same as the spec)
+*foo**bar*
+-------- pipeline output
+<ezmark-block key="ceaa90d49925e71e"></ezmark-block>
+<p><em>foo**bar</em></p>
+
+======== example 413: Emphasis and strong emphasis (same as the spec)
+***foo** bar*
+-------- pipeline output
+<ezmark-block key="2ea13e375e6ce378"></ezmark-block>
+<p><em><strong>foo</strong> bar</em></p>
+
+======== example 414: Emphasis and strong emphasis (same as the spec)
+*foo **bar***
+-------- pipeline output
+<ezmark-block key="31e0fa982bfdfeb4"></ezmark-block>
+<p><em>foo <strong>bar</strong></em></p>
+
+======== example 415: Emphasis and strong emphasis (same as the spec)
+*foo**bar***
+-------- pipeline output
+<ezmark-block key="4921ba24f17d4f82"></ezmark-block>
+<p><em>foo<strong>bar</strong></em></p>
+
+======== example 416: Emphasis and strong emphasis (same as the spec)
+foo***bar***baz
+-------- pipeline output
+<ezmark-block key="209ad6d2d60dc6e3"></ezmark-block>
+<p>foo<em><strong>bar</strong></em>baz</p>
+
+======== example 417: Emphasis and strong emphasis (same as the spec)
+foo******bar*********baz
+-------- pipeline output
+<ezmark-block key="031625a0af572427"></ezmark-block>
+<p>foo<strong><strong><strong>bar</strong></strong></strong>***baz</p>
+
+======== example 418: Emphasis and strong emphasis (same as the spec)
+*foo **bar *baz* bim** bop*
+-------- pipeline output
+<ezmark-block key="09034fd24a2dffc2"></ezmark-block>
+<p><em>foo <strong>bar <em>baz</em> bim</strong> bop</em></p>
+
+======== example 419: Emphasis and strong emphasis (differs from the spec)
+*foo [*bar*](/url)*
+-------- pipeline output
+<ezmark-block key="bb524d6093f990b5"></ezmark-block>
+<p><em>foo <a href="/url" rel="noopener noreferrer"><em>bar</em></a></em></p>
+
+======== example 420: Emphasis and strong emphasis (same as the spec)
+** is not an empty emphasis
+-------- pipeline output
+<ezmark-block key="8d3065d5a9855e3a"></ezmark-block>
+<p>** is not an empty emphasis</p>
+
+======== example 421: Emphasis and strong emphasis (same as the spec)
+**** is not an empty strong emphasis
+-------- pipeline output
+<ezmark-block key="a5ab5effa110784b"></ezmark-block>
+<p>**** is not an empty strong emphasis</p>
+
+======== example 422: Emphasis and strong emphasis (differs from the spec)
+**foo [bar](/url)**
+-------- pipeline output
+<ezmark-block key="8bcdfb5692755ed7"></ezmark-block>
+<p><strong>foo <a href="/url" rel="noopener noreferrer">bar</a></strong></p>
+
+======== example 423: Emphasis and strong emphasis (same as the spec)
+**foo
+bar**
+-------- pipeline output
+<ezmark-block key="6e5bcc525c4f3b44"></ezmark-block>
+<p><strong>foo
+bar</strong></p>
+
+======== example 424: Emphasis and strong emphasis (same as the spec)
+__foo _bar_ baz__
+-------- pipeline output
+<ezmark-block key="3800c29a0b49c3a9"></ezmark-block>
+<p><strong>foo <em>bar</em> baz</strong></p>
+
+======== example 425: Emphasis and strong emphasis (same as the spec)
+__foo __bar__ baz__
+-------- pipeline output
+<ezmark-block key="165d95f20e88e78b"></ezmark-block>
+<p><strong>foo <strong>bar</strong> baz</strong></p>
+
+======== example 426: Emphasis and strong emphasis (same as the spec)
+____foo__ bar__
+-------- pipeline output
+<ezmark-block key="3c146c2fdebd49d2"></ezmark-block>
+<p><strong><strong>foo</strong> bar</strong></p>
+
+======== example 427: Emphasis and strong emphasis (same as the spec)
+**foo **bar****
+-------- pipeline output
+<ezmark-block key="9fdab335dfd28d42"></ezmark-block>
+<p><strong>foo <strong>bar</strong></strong></p>
+
+======== example 428: Emphasis and strong emphasis (same as the spec)
+**foo *bar* baz**
+-------- pipeline output
+<ezmark-block key="61317e92819bc525"></ezmark-block>
+<p><strong>foo <em>bar</em> baz</strong></p>
+
+======== example 429: Emphasis and strong emphasis (same as the spec)
+**foo*bar*baz**
+-------- pipeline output
+<ezmark-block key="4f091a2fe0f39e17"></ezmark-block>
+<p><strong>foo<em>bar</em>baz</strong></p>
+
+======== example 430: Emphasis and strong emphasis (same as the spec)
+***foo* bar**
+-------- pipeline output
+<ezmark-block key="9227e639953939c6"></ezmark-block>
+<p><strong><em>foo</em> bar</strong></p>
+
+======== example 431: Emphasis and strong emphasis (same as the spec)
+**foo *bar***
+-------- pipeline output
+<ezmark-block key="b609be04fedc0934"></ezmark-block>
+<p><strong>foo <em>bar</em></strong></p>
+
+======== example 432: Emphasis and strong emphasis (same as the spec)
+**foo *bar **baz**
+bim* bop**
+-------- pipeline output
+<ezmark-block key="53b4942fdd3c8ad8"></ezmark-block>
+<p><strong>foo <em>bar <strong>baz</strong>
+bim</em> bop</strong></p>
+
+======== example 433: Emphasis and strong emphasis (differs from the spec)
+**foo [*bar*](/url)**
+-------- pipeline output
+<ezmark-block key="8b265fe6a595c355"></ezmark-block>
+<p><strong>foo <a href="/url" rel="noopener noreferrer"><em>bar</em></a></strong></p>
+
+======== example 434: Emphasis and strong emphasis (same as the spec)
+__ is not an empty emphasis
+-------- pipeline output
+<ezmark-block key="c377b69c5ce1454c"></ezmark-block>
+<p>__ is not an empty emphasis</p>
+
+======== example 435: Emphasis and strong emphasis (same as the spec)
+____ is not an empty strong emphasis
+-------- pipeline output
+<ezmark-block key="1725dc354d928dbf"></ezmark-block>
+<p>____ is not an empty strong emphasis</p>
+
+======== example 436: Emphasis and strong emphasis (same as the spec)
+foo ***
+-------- pipeline output
+<ezmark-block key="d11e71cd856bdbdd"></ezmark-block>
+<p>foo ***</p>
+
+======== example 437: Emphasis and strong emphasis (same as the spec)
+foo *\**
+-------- pipeline output
+<ezmark-block key="d8c0e9380f92d993"></ezmark-block>
+<p>foo <em>*</em></p>
+
+======== example 438: Emphasis and strong emphasis (same as the spec)
+foo *_*
+-------- pipeline output
+<ezmark-block key="cffd8fcd84766874"></ezmark-block>
+<p>foo <em>_</em></p>
+
+======== example 439: Emphasis and strong emphasis (same as the spec)
+foo *****
+-------- pipeline output
+<ezmark-block key="ededd610ba401a2d"></ezmark-block>
+<p>foo *****</p>
+
+======== example 440: Emphasis and strong emphasis (same as the spec)
+foo **\***
+-------- pipeline output
+<ezmark-block key="7d4af6c952125d93"></ezmark-block>
+<p>foo <strong>*</strong></p>
+
+======== example 441: Emphasis and strong emphasis (same as the spec)
+foo **_**
+-------- pipeline output
+<ezmark-block key="617e97118c73db92"></ezmark-block>
+<p>foo <strong>_</strong></p>
+
+======== example 442: Emphasis and strong emphasis (same as the spec)
+**foo*
+-------- pipeline output
+<ezmark-block key="bbca0630373c3fb7"></ezmark-block>
+<p>*<em>foo</em></p>
+
+======== example 443: Emphasis and strong emphasis (same as the spec)
+*foo**
+-------- pipeline output
+<ezmark-block key="e98bb6a115bb679f"></ezmark-block>
+<p><em>foo</em>*</p>
+
+======== example 444: Emphasis and strong emphasis (same as the spec)
+***foo**
+-------- pipeline output
+<ezmark-block key="68b39e27eacf6e0f"></ezmark-block>
+<p>*<strong>foo</strong></p>
+
+======== example 445: Emphasis and strong emphasis (same as the spec)
+****foo*
+-------- pipeline output
+<ezmark-block key="e93c6b9f0c5360e7"></ezmark-block>
+<p>***<em>foo</em></p>
+
+======== example 446: Emphasis and strong emphasis (same as the spec)
+**foo***
+-------- pipeline output
+<ezmark-block key="0367e12bc448a7b7"></ezmark-block>
+<p><strong>foo</strong>*</p>
+
+======== example 447: Emphasis and strong emphasis (same as the spec)
+*foo****
+-------- pipeline output
+<ezmark-block key="9a0475887763405f"></ezmark-block>
+<p><em>foo</em>***</p>
+
+======== example 448: Emphasis and strong emphasis (same as the spec)
+foo ___
+-------- pipeline output
+<ezmark-block key="da14dfcb460cf924"></ezmark-block>
+<p>foo ___</p>
+
+======== example 449: Emphasis and strong emphasis (same as the spec)
+foo _\__
+-------- pipeline output
+<ezmark-block key="a5bfea680bcc40ac"></ezmark-block>
+<p>foo <em>_</em></p>
+
+======== example 450: Emphasis and strong emphasis (same as the spec)
+foo _*_
+-------- pipeline output
+<ezmark-block key="dac21fcb46a01bb9"></ezmark-block>
+<p>foo <em>*</em></p>
+
+======== example 451: Emphasis and strong emphasis (same as the spec)
+foo _____
+-------- pipeline output
+<ezmark-block key="473801c5ac42a3ba"></ezmark-block>
+<p>foo _____</p>
+
+======== example 452: Emphasis and strong emphasis (same as the spec)
+foo __\___
+-------- pipeline output
+<ezmark-block key="7582e7fbc271136c"></ezmark-block>
+<p>foo <strong>_</strong></p>
+
+======== example 453: Emphasis and strong emphasis (same as the spec)
+foo __*__
+-------- pipeline output
+<ezmark-block key="a053f6c54d135849"></ezmark-block>
+<p>foo <strong>*</strong></p>
+
+======== example 454: Emphasis and strong emphasis (same as the spec)
+__foo_
+-------- pipeline output
+<ezmark-block key="91401fb1872c8f76"></ezmark-block>
+<p>_<em>foo</em></p>
+
+======== example 455: Emphasis and strong emphasis (same as the spec)
+_foo__
+-------- pipeline output
+<ezmark-block key="fff16c6dd5951af4"></ezmark-block>
+<p><em>foo</em>_</p>
+
+======== example 456: Emphasis and strong emphasis (same as the spec)
+___foo__
+-------- pipeline output
+<ezmark-block key="58e8e5721db82fb2"></ezmark-block>
+<p>_<strong>foo</strong></p>
+
+======== example 457: Emphasis and strong emphasis (same as the spec)
+____foo_
+-------- pipeline output
+<ezmark-block key="b189b0b05c50a884"></ezmark-block>
+<p>___<em>foo</em></p>
+
+======== example 458: Emphasis and strong emphasis (same as the spec)
+__foo___
+-------- pipeline output
+<ezmark-block key="cd482ba44766c49c"></ezmark-block>
+<p><strong>foo</strong>_</p>
+
+======== example 459: Emphasis and strong emphasis (same as the spec)
+_foo____
+-------- pipeline output
+<ezmark-block key="a24ccc24a0dd4e0a"></ezmark-block>
+<p><em>foo</em>___</p>
+
+======== example 460: Emphasis and strong emphasis (same as the spec)
+**foo**
+-------- pipeline output
+<ezmark-block key="548820eddb6017c7"></ezmark-block>
+<p><strong>foo</strong></p>
+
+======== example 461: Emphasis and strong emphasis (same as the spec)
+*_foo_*
+-------- pipeline output
+<ezmark-block key="fa8fb6232c335613"></ezmark-block>
+<p><em><em>foo</em></em></p>
+
+======== example 462: Emphasis and strong emphasis (same as the spec)
+__foo__
+-------- pipeline output
+<ezmark-block key="fc8503a8b0b742ab"></ezmark-block>
+<p><strong>foo</strong></p>
+
+======== example 463: Emphasis and strong emphasis (same as the spec)
+_*foo*_
+-------- pipeline output
+<ezmark-block key="06493f8ffc44e06f"></ezmark-block>
+<p><em><em>foo</em></em></p>
+
+======== example 464: Emphasis and strong emphasis (same as the spec)
+****foo****
+-------- pipeline output
+<ezmark-block key="b631a73783259ad7"></ezmark-block>
+<p><strong><strong>foo</strong></strong></p>
+
+======== example 465: Emphasis and strong emphasis (same as the spec)
+____foo____
+-------- pipeline output
+<ezmark-block key="77cd02d17c13e33f"></ezmark-block>
+<p><strong><strong>foo</strong></strong></p>
+
+======== example 466: Emphasis and strong emphasis (same as the spec)
+******foo******
+-------- pipeline output
+<ezmark-block key="ef9e6cc51ec632a7"></ezmark-block>
+<p><strong><strong><strong>foo</strong></strong></strong></p>
+
+======== example 467: Emphasis and strong emphasis (same as the spec)
+***foo***
+-------- pipeline output
+<ezmark-block key="b8a3e2d3fe7828df"></ezmark-block>
+<p><em><strong>foo</strong></em></p>
+
+======== example 468: Emphasis and strong emphasis (same as the spec)
+_____foo_____
+-------- pipeline output
+<ezmark-block key="b3a54da5411a6ecb"></ezmark-block>
+<p><em><strong><strong>foo</strong></strong></em></p>
+
+======== example 469: Emphasis and strong emphasis (same as the spec)
+*foo _bar* baz_
+-------- pipeline output
+<ezmark-block key="e0b0d091fcee120f"></ezmark-block>
+<p><em>foo _bar</em> baz_</p>
+
+======== example 470: Emphasis and strong emphasis (same as the spec)
+*foo __bar *baz bim__ bam*
+-------- pipeline output
+<ezmark-block key="552db417830f2b95"></ezmark-block>
+<p><em>foo <strong>bar *baz bim</strong> bam</em></p>
+
+======== example 471: Emphasis and strong emphasis (same as the spec)
+**foo **bar baz**
+-------- pipeline output
+<ezmark-block key="43f377eead5fe44f"></ezmark-block>
+<p>**foo <strong>bar baz</strong></p>
+
+======== example 472: Emphasis and strong emphasis (same as the spec)
+*foo *bar baz*
+-------- pipeline output
+<ezmark-block key="a5036b01efae34ef"></ezmark-block>
+<p>*foo <em>bar baz</em></p>
+
+======== example 473: Emphasis and strong emphasis (differs from the spec)
+*[bar*](/url)
+-------- pipeline output
+<ezmark-block key="bbe9991d3b1092c7"></ezmark-block>
+<p>*<a href="/url" rel="noopener noreferrer">bar*</a></p>
+
+======== example 474: Emphasis and strong emphasis (differs from the spec)
+_foo [bar_](/url)
+-------- pipeline output
+<ezmark-block key="f9e2fcbb258b6b89"></ezmark-block>
+<p>_foo <a href="/url" rel="noopener noreferrer">bar_</a></p>
+
+======== example 475: Emphasis and strong emphasis (differs from the spec)
+*<img src="foo" title="*"/>
+-------- pipeline output
+<ezmark-block key="d4430aa5dc5ffab1"></ezmark-block>
+<p>*<img src="ezmark-blocked:missing:666f6f" title="*"></p>
+
+======== example 476: Emphasis and strong emphasis (differs from the spec)
+**<a href="**">
+-------- pipeline output
+<ezmark-block key="606b14bcde191f58"></ezmark-block>
+<p>**<a href="**" rel="noopener noreferrer"></a></p><a href="**" rel="noopener noreferrer">
+</a>
+
+======== example 477: Emphasis and strong emphasis (differs from the spec)
+__<a href="__">
+-------- pipeline output
+<ezmark-block key="a5b2c8f58687e530"></ezmark-block>
+<p>__<a href="__" rel="noopener noreferrer"></a></p><a href="__" rel="noopener noreferrer">
+</a>
+
+======== example 478: Emphasis and strong emphasis (same as the spec)
+*a `*`*
+-------- pipeline output
+<ezmark-block key="c5db6d29fd59258c"></ezmark-block>
+<p><em>a <code>*</code></em></p>
+
+======== example 479: Emphasis and strong emphasis (same as the spec)
+_a `_`_
+-------- pipeline output
+<ezmark-block key="6a6241059579110f"></ezmark-block>
+<p><em>a <code>_</code></em></p>
+
+======== example 480: Emphasis and strong emphasis (differs from the spec)
+**a<https://foo.bar/?q=**>
+-------- pipeline output
+<ezmark-block key="96768ca71f081eb8"></ezmark-block>
+<p>**a<a href="https://foo.bar/?q=**" rel="noopener noreferrer">https://foo.bar/?q=**</a></p>
+
+======== example 481: Emphasis and strong emphasis (differs from the spec)
+__a<https://foo.bar/?q=__>
+-------- pipeline output
+<ezmark-block key="75b4915526d9f314"></ezmark-block>
+<p>__a<a href="https://foo.bar/?q=__" rel="noopener noreferrer">https://foo.bar/?q=__</a></p>
+
+======== example 482: Links (differs from the spec)
+[link](/uri "title")
+-------- pipeline output
+<ezmark-block key="88edb51990bcdbeb"></ezmark-block>
+<p><a href="/uri" title="title" rel="noopener noreferrer">link</a></p>
+
+======== example 483: Links (differs from the spec)
+[link](/uri)
+-------- pipeline output
+<ezmark-block key="069ccb779caf3239"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link</a></p>
+
+======== example 484: Links (differs from the spec)
+[](./target.md)
+-------- pipeline output
+<ezmark-block key="d3076aa59ce351fb"></ezmark-block>
+<p><a href="./target.md" rel="noopener noreferrer"></a></p>
+
+======== example 485: Links (differs from the spec)
+[link]()
+-------- pipeline output
+<ezmark-block key="464134d7d582bbf2"></ezmark-block>
+<p><a href="" rel="noopener noreferrer">link</a></p>
+
+======== example 486: Links (differs from the spec)
+[link](<>)
+-------- pipeline output
+<ezmark-block key="37ec69e9d6c84554"></ezmark-block>
+<p><a href="" rel="noopener noreferrer">link</a></p>
+
+======== example 487: Links (differs from the spec)
+[]()
+-------- pipeline output
+<ezmark-block key="70c47b6672ff5cda"></ezmark-block>
+<p><a href="" rel="noopener noreferrer"></a></p>
+
+======== example 488: Links (same as the spec)
+[link](/my uri)
+-------- pipeline output
+<ezmark-block key="11995ee8283289fb"></ezmark-block>
+<p>[link](/my uri)</p>
+
+======== example 489: Links (differs from the spec)
+[link](</my uri>)
+-------- pipeline output
+<ezmark-block key="5c9e26571209513b"></ezmark-block>
+<p><a href="/my%20uri" rel="noopener noreferrer">link</a></p>
+
+======== example 490: Links (same as the spec)
+[link](foo
+bar)
+-------- pipeline output
+<ezmark-block key="fb2a74001da337dd"></ezmark-block>
+<p>[link](foo
+bar)</p>
+
+======== example 491: Links (differs from the spec)
+[link](<foo
+bar>)
+-------- pipeline output
+<ezmark-block key="fcfb2c3e762c51ed"></ezmark-block>
+<p>[link]()</p>
+
+======== example 492: Links (differs from the spec)
+[a](<b)c>)
+-------- pipeline output
+<ezmark-block key="87b292a31cfd4cf7"></ezmark-block>
+<p><a href="b)c" rel="noopener noreferrer">a</a></p>
+
+======== example 493: Links (same as the spec)
+[link](<foo\>)
+-------- pipeline output
+<ezmark-block key="fc48ec18d394c1b8"></ezmark-block>
+<p>[link](&lt;foo&gt;)</p>
+
+======== example 494: Links (differs from the spec)
+[a](<b)c
+[a](<b)c>
+[a](<b>c)
+-------- pipeline output
+<ezmark-block key="942d73399feae17a"></ezmark-block>
+<p>[a](&lt;b)c
+[a](&lt;b)c&gt;
+[a](<b>c)</b></p><b>
+</b>
+
+======== example 495: Links (differs from the spec)
+[link](\(foo\))
+-------- pipeline output
+<ezmark-block key="05b4b3221cef2da5"></ezmark-block>
+<p><a href="(foo)" rel="noopener noreferrer">link</a></p>
+
+======== example 496: Links (differs from the spec)
+[link](foo(and(bar)))
+-------- pipeline output
+<ezmark-block key="4a8178fd24adaa2e"></ezmark-block>
+<p><a href="foo(and(bar))" rel="noopener noreferrer">link</a></p>
+
+======== example 497: Links (same as the spec)
+[link](foo(and(bar))
+-------- pipeline output
+<ezmark-block key="ee1ba3d2adb18a33"></ezmark-block>
+<p>[link](foo(and(bar))</p>
+
+======== example 498: Links (differs from the spec)
+[link](foo\(and\(bar\))
+-------- pipeline output
+<ezmark-block key="b9bbd72b3d3e50ef"></ezmark-block>
+<p><a href="foo(and(bar)" rel="noopener noreferrer">link</a></p>
+
+======== example 499: Links (differs from the spec)
+[link](<foo(and(bar)>)
+-------- pipeline output
+<ezmark-block key="78b6a3452e09687f"></ezmark-block>
+<p><a href="foo(and(bar)" rel="noopener noreferrer">link</a></p>
+
+======== example 500: Links (differs from the spec)
+[link](foo\)\:)
+-------- pipeline output
+<ezmark-block key="7a845b8984aee78b"></ezmark-block>
+<p><a href="foo):" rel="noopener noreferrer">link</a></p>
+
+======== example 501: Links (differs from the spec)
+[link](#fragment)
+
+[link](https://example.com#fragment)
+
+[link](https://example.com?foo=3#frag)
+-------- pipeline output
+<ezmark-block key="aa6c4edeef26af87"></ezmark-block>
+<p><a href="#user-content-fragment" rel="noopener noreferrer">link</a></p>
+<ezmark-block key="01fdb6663a8597f9"></ezmark-block>
+<p><a href="https://example.com#fragment" rel="noopener noreferrer">link</a></p>
+<ezmark-block key="2b8ef461a1572c46"></ezmark-block>
+<p><a href="https://example.com?foo=3#frag" rel="noopener noreferrer">link</a></p>
+
+======== example 502: Links (differs from the spec)
+[link](foo\bar)
+-------- pipeline output
+<ezmark-block key="a1e7aeabee40754b"></ezmark-block>
+<p><a href="foo%5Cbar" rel="noopener noreferrer">link</a></p>
+
+======== example 503: Links (differs from the spec)
+[link](foo%20b&auml;)
+-------- pipeline output
+<ezmark-block key="a76eb33897a0eced"></ezmark-block>
+<p><a href="foo%20b%C3%A4" rel="noopener noreferrer">link</a></p>
+
+======== example 504: Links (differs from the spec)
+[link]("title")
+-------- pipeline output
+<ezmark-block key="cc4004c73dcf45ea"></ezmark-block>
+<p><a href="%22title%22" rel="noopener noreferrer">link</a></p>
+
+======== example 505: Links (differs from the spec)
+[link](/url "title")
+[link](/url 'title')
+[link](/url (title))
+-------- pipeline output
+<ezmark-block key="ea6ceecd199d754d"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">link</a>
+<a href="/url" title="title" rel="noopener noreferrer">link</a>
+<a href="/url" title="title" rel="noopener noreferrer">link</a></p>
+
+======== example 506: Links (differs from the spec)
+[link](/url "title \"&quot;")
+-------- pipeline output
+<ezmark-block key="f7fa83cba32fd606"></ezmark-block>
+<p><a href="/url" title="title &quot;&quot;" rel="noopener noreferrer">link</a></p>
+
+======== example 507: Links (differs from the spec)
+[link](/url "title")
+-------- pipeline output
+<ezmark-block key="c753a95d4b949746"></ezmark-block>
+<p><a href="/url%C2%A0%22title%22" rel="noopener noreferrer">link</a></p>
+
+======== example 508: Links (differs from the spec)
+[link](/url "title "and" title")
+-------- pipeline output
+<ezmark-block key="32fbab84d3c2bf17"></ezmark-block>
+<p>[link](/url "title "and" title")</p>
+
+======== example 509: Links (differs from the spec)
+[link](/url 'title "and" title')
+-------- pipeline output
+<ezmark-block key="3000d0951eccd22b"></ezmark-block>
+<p><a href="/url" title="title &quot;and&quot; title" rel="noopener noreferrer">link</a></p>
+
+======== example 510: Links (differs from the spec)
+[link](   /uri
+  "title"  )
+-------- pipeline output
+<ezmark-block key="d3597df2f1309f88"></ezmark-block>
+<p><a href="/uri" title="title" rel="noopener noreferrer">link</a></p>
+
+======== example 511: Links (same as the spec)
+[link] (/uri)
+-------- pipeline output
+<ezmark-block key="7ab1ab087ce4df73"></ezmark-block>
+<p>[link] (/uri)</p>
+
+======== example 512: Links (differs from the spec)
+[link [foo [bar]]](/uri)
+-------- pipeline output
+<ezmark-block key="745dd366eafce3d2"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link [foo [bar]]</a></p>
+
+======== example 513: Links (same as the spec)
+[link] bar](/uri)
+-------- pipeline output
+<ezmark-block key="606e3d643ad4b48b"></ezmark-block>
+<p>[link] bar](/uri)</p>
+
+======== example 514: Links (differs from the spec)
+[link [bar](/uri)
+-------- pipeline output
+<ezmark-block key="b19ba23da2b8a13b"></ezmark-block>
+<p>[link <a href="/uri" rel="noopener noreferrer">bar</a></p>
+
+======== example 515: Links (differs from the spec)
+[link \[bar](/uri)
+-------- pipeline output
+<ezmark-block key="076b681cf08be113"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link [bar</a></p>
+
+======== example 516: Links (differs from the spec)
+[link *foo **bar** `#`*](/uri)
+-------- pipeline output
+<ezmark-block key="6706464eb249032f"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link <em>foo <strong>bar</strong> <code>#</code></em></a></p>
+
+======== example 517: Links (differs from the spec)
+[![moon](moon.jpg)](/uri)
+-------- pipeline output
+<ezmark-block key="56ef86a26e647894"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer"><img src="ezmark-blocked:missing:6d6f6f6e2e6a7067" alt="moon"></a></p>
+
+======== example 518: Links (differs from the spec)
+[foo [bar](/uri)](/uri)
+-------- pipeline output
+<ezmark-block key="9d2a0c460f1bd99e"></ezmark-block>
+<p>[foo <a href="/uri" rel="noopener noreferrer">bar</a>](/uri)</p>
+
+======== example 519: Links (differs from the spec)
+[foo *[bar [baz](/uri)](/uri)*](/uri)
+-------- pipeline output
+<ezmark-block key="4c1846612345a1e7"></ezmark-block>
+<p>[foo <em>[bar <a href="/uri" rel="noopener noreferrer">baz</a>](/uri)</em>](/uri)</p>
+
+======== example 520: Links (differs from the spec)
+![[[foo](uri1)](uri2)](uri3)
+-------- pipeline output
+<ezmark-block key="d5764b9e9f39df3d"></ezmark-block>
+<p><img src="ezmark-blocked:missing:75726933" alt="[foo](uri2)"></p>
+
+======== example 521: Links (differs from the spec)
+*[foo*](/uri)
+-------- pipeline output
+<ezmark-block key="ee14901c477d061b"></ezmark-block>
+<p>*<a href="/uri" rel="noopener noreferrer">foo*</a></p>
+
+======== example 522: Links (differs from the spec)
+[foo *bar](baz*)
+-------- pipeline output
+<ezmark-block key="dac17382b55c88a8"></ezmark-block>
+<p><a href="baz*" rel="noopener noreferrer">foo *bar</a></p>
+
+======== example 523: Links (same as the spec)
+*foo [bar* baz]
+-------- pipeline output
+<ezmark-block key="c9822a879c549bd1"></ezmark-block>
+<p><em>foo [bar</em> baz]</p>
+
+======== example 524: Links (differs from the spec)
+[foo <bar attr="](baz)">
+-------- pipeline output
+<ezmark-block key="dc4ccaf0b37d7c1c"></ezmark-block>
+<p>[foo </p>
+
+======== example 525: Links (same as the spec)
+[foo`](/uri)`
+-------- pipeline output
+<ezmark-block key="b9b930ba18850bef"></ezmark-block>
+<p>[foo<code>](/uri)</code></p>
+
+======== example 526: Links (differs from the spec)
+[foo<https://example.com/?search=](uri)>
+-------- pipeline output
+<ezmark-block key="e9d256354e92565f"></ezmark-block>
+<p>[foo<a href="https://example.com/?search=%5D(uri)" rel="noopener noreferrer">https://example.com/?search=](uri)</a></p>
+
+======== example 527: Links (differs from the spec)
+[foo][bar]
+
+[bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="2eac3cf442037862"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 528: Links (differs from the spec)
+[link [foo [bar]]][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="df2f183e71e31897"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link [foo [bar]]</a></p>
+
+======== example 529: Links (differs from the spec)
+[link \[bar][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="b6df7bb766220b5c"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link [bar</a></p>
+
+======== example 530: Links (differs from the spec)
+[link *foo **bar** `#`*][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="b82f03f8fb298598"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">link <em>foo <strong>bar</strong> <code>#</code></em></a></p>
+
+======== example 531: Links (differs from the spec)
+[![moon](moon.jpg)][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="497143e38f935739"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer"><img src="ezmark-blocked:missing:6d6f6f6e2e6a7067" alt="moon"></a></p>
+
+======== example 532: Links (differs from the spec)
+[foo [bar](/uri)][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="29142368c8e9ad53"></ezmark-block>
+<p>[foo <a href="/uri" rel="noopener noreferrer">bar</a>]<a href="/uri" rel="noopener noreferrer">ref</a></p>
+
+======== example 533: Links (differs from the spec)
+[foo *bar [baz][ref]*][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="47e06aeecf9acbc5"></ezmark-block>
+<p>[foo <em>bar <a href="/uri" rel="noopener noreferrer">baz</a></em>]<a href="/uri" rel="noopener noreferrer">ref</a></p>
+
+======== example 534: Links (differs from the spec)
+*[foo*][ref]
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="d684ac5182259974"></ezmark-block>
+<p>*<a href="/uri" rel="noopener noreferrer">foo*</a></p>
+
+======== example 535: Links (differs from the spec)
+[foo *bar][ref]*
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="739b7d68629181e5"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">foo *bar</a>*</p>
+
+======== example 536: Links (differs from the spec)
+[foo <bar attr="][ref]">
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="033be70b2829a88d"></ezmark-block>
+<p>[foo </p>
+
+======== example 537: Links (same as the spec)
+[foo`][ref]`
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="f9c22bce49a78b0a"></ezmark-block>
+<p>[foo<code>][ref]</code></p>
+
+======== example 538: Links (differs from the spec)
+[foo<https://example.com/?search=][ref]>
+
+[ref]: /uri
+-------- pipeline output
+<ezmark-block key="21a4c917b5df5bff"></ezmark-block>
+<p>[foo<a href="https://example.com/?search=%5D%5Bref%5D" rel="noopener noreferrer">https://example.com/?search=][ref]</a></p>
+
+======== example 539: Links (differs from the spec)
+[foo][BaR]
+
+[bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="b0933bed2b19b9a2"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 540: Links (differs from the spec)
+[ẞ]
+
+[SS]: /url
+-------- pipeline output
+<ezmark-block key="8c9b91f1255aca10"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">ẞ</a></p>
+
+======== example 541: Links (differs from the spec)
+[Foo
+  bar]: /url
+
+[Baz][Foo bar]
+-------- pipeline output
+<ezmark-block key="3f7999c63e23b59f"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">Baz</a></p>
+
+======== example 542: Links (differs from the spec)
+[foo] [bar]
+
+[bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="19cbb86c5e9005fc"></ezmark-block>
+<p>[foo] <a href="/url" title="title" rel="noopener noreferrer">bar</a></p>
+
+======== example 543: Links (differs from the spec)
+[foo]
+[bar]
+
+[bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="d79392aa16a8602a"></ezmark-block>
+<p>[foo]
+<a href="/url" title="title" rel="noopener noreferrer">bar</a></p>
+
+======== example 544: Links (differs from the spec)
+[foo]: /url1
+
+[foo]: /url2
+
+[bar][foo]
+-------- pipeline output
+<ezmark-block key="c1f07476a6e4cd28"></ezmark-block>
+<p><a href="/url1" rel="noopener noreferrer">bar</a></p>
+
+======== example 545: Links (same as the spec)
+[bar][foo\!]
+
+[foo!]: /url
+-------- pipeline output
+<ezmark-block key="c9fdb4c73c206fc9"></ezmark-block>
+<p>[bar][foo!]</p>
+
+======== example 546: Links (same as the spec)
+[foo][ref[]
+
+[ref[]: /uri
+-------- pipeline output
+<ezmark-block key="2cc52901e98d932f"></ezmark-block>
+<p>[foo][ref[]</p>
+<ezmark-block key="88e7f1070129c338"></ezmark-block>
+<p>[ref[]: /uri</p>
+
+======== example 547: Links (same as the spec)
+[foo][ref[bar]]
+
+[ref[bar]]: /uri
+-------- pipeline output
+<ezmark-block key="25823b4e89a37537"></ezmark-block>
+<p>[foo][ref[bar]]</p>
+<ezmark-block key="6513615ea7a60a50"></ezmark-block>
+<p>[ref[bar]]: /uri</p>
+
+======== example 548: Links (same as the spec)
+[[[foo]]]
+
+[[[foo]]]: /url
+-------- pipeline output
+<ezmark-block key="f108697f75d8cd69"></ezmark-block>
+<p>[[[foo]]]</p>
+<ezmark-block key="662c7ef6382c66a5"></ezmark-block>
+<p>[[[foo]]]: /url</p>
+
+======== example 549: Links (differs from the spec)
+[foo][ref\[]
+
+[ref\[]: /uri
+-------- pipeline output
+<ezmark-block key="dedfff3fff4fb56d"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">foo</a></p>
+
+======== example 550: Links (differs from the spec)
+[bar\\]: /uri
+
+[bar\\]
+-------- pipeline output
+<ezmark-block key="43b839825b139932"></ezmark-block>
+<p><a href="/uri" rel="noopener noreferrer">bar\</a></p>
+
+======== example 551: Links (same as the spec)
+[]
+
+[]: /uri
+-------- pipeline output
+<ezmark-block key="09612b07b5ecb5a5"></ezmark-block>
+<p>[]</p>
+<ezmark-block key="c7f0723a3c217c12"></ezmark-block>
+<p>[]: /uri</p>
+
+======== example 552: Links (same as the spec)
+[
+ ]
+
+[
+ ]: /uri
+-------- pipeline output
+<ezmark-block key="943ff4656510b237"></ezmark-block>
+<p>[
+]</p>
+<ezmark-block key="14266d430bd40e60"></ezmark-block>
+<p>[
+]: /uri</p>
+
+======== example 553: Links (differs from the spec)
+[foo][]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="2a87c39bf73f3795"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 554: Links (differs from the spec)
+[*foo* bar][]
+
+[*foo* bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="776e0873049b2f4a"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer"><em>foo</em> bar</a></p>
+
+======== example 555: Links (differs from the spec)
+[Foo][]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="6f0a7089592e47f5"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">Foo</a></p>
+
+======== example 556: Links (differs from the spec)
+[foo] 
+[]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="51cb5a118fc41e43"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a>
+[]</p>
+
+======== example 557: Links (differs from the spec)
+[foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="ddea1cd076345255"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 558: Links (differs from the spec)
+[*foo* bar]
+
+[*foo* bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="fd8056b466bb423a"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer"><em>foo</em> bar</a></p>
+
+======== example 559: Links (differs from the spec)
+[[*foo* bar]]
+
+[*foo* bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="097d814455c17b16"></ezmark-block>
+<p>[<a href="/url" title="title" rel="noopener noreferrer"><em>foo</em> bar</a>]</p>
+
+======== example 560: Links (differs from the spec)
+[[bar [foo]
+
+[foo]: /url
+-------- pipeline output
+<ezmark-block key="0ea4a11631d2bfe6"></ezmark-block>
+<p>[[bar <a href="/url" rel="noopener noreferrer">foo</a></p>
+
+======== example 561: Links (differs from the spec)
+[Foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="b35c5bc474c44b35"></ezmark-block>
+<p><a href="/url" title="title" rel="noopener noreferrer">Foo</a></p>
+
+======== example 562: Links (differs from the spec)
+[foo] bar
+
+[foo]: /url
+-------- pipeline output
+<ezmark-block key="8020571118812fb0"></ezmark-block>
+<p><a href="/url" rel="noopener noreferrer">foo</a> bar</p>
+
+======== example 563: Links (same as the spec)
+\[foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="6ca2f5fda3dd273f"></ezmark-block>
+<p>[foo]</p>
+
+======== example 564: Links (differs from the spec)
+[foo*]: /url
+
+*[foo*]
+-------- pipeline output
+<ezmark-block key="6a98bbfa2fcfd8af"></ezmark-block>
+<p>*<a href="/url" rel="noopener noreferrer">foo*</a></p>
+
+======== example 565: Links (differs from the spec)
+[foo][bar]
+
+[foo]: /url1
+[bar]: /url2
+-------- pipeline output
+<ezmark-block key="2eac3cf442037862"></ezmark-block>
+<p><a href="/url2" rel="noopener noreferrer">foo</a></p>
+
+======== example 566: Links (differs from the spec)
+[foo][]
+
+[foo]: /url1
+-------- pipeline output
+<ezmark-block key="2a87c39bf73f3795"></ezmark-block>
+<p><a href="/url1" rel="noopener noreferrer">foo</a></p>
+
+======== example 567: Links (differs from the spec)
+[foo]()
+
+[foo]: /url1
+-------- pipeline output
+<ezmark-block key="2c01179bf87fe28a"></ezmark-block>
+<p><a href="" rel="noopener noreferrer">foo</a></p>
+
+======== example 568: Links (differs from the spec)
+[foo](not a link)
+
+[foo]: /url1
+-------- pipeline output
+<ezmark-block key="0604e19380588254"></ezmark-block>
+<p><a href="/url1" rel="noopener noreferrer">foo</a>(not a link)</p>
+
+======== example 569: Links (differs from the spec)
+[foo][bar][baz]
+
+[baz]: /url
+-------- pipeline output
+<ezmark-block key="60961fced1d1f9f3"></ezmark-block>
+<p>[foo]<a href="/url" rel="noopener noreferrer">bar</a></p>
+
+======== example 570: Links (differs from the spec)
+[foo][bar][baz]
+
+[baz]: /url1
+[bar]: /url2
+-------- pipeline output
+<ezmark-block key="60961fced1d1f9f3"></ezmark-block>
+<p><a href="/url2" rel="noopener noreferrer">foo</a><a href="/url1" rel="noopener noreferrer">baz</a></p>
+
+======== example 571: Links (differs from the spec)
+[foo][bar][baz]
+
+[baz]: /url1
+[foo]: /url2
+-------- pipeline output
+<ezmark-block key="60961fced1d1f9f3"></ezmark-block>
+<p>[foo]<a href="/url1" rel="noopener noreferrer">bar</a></p>
+
+======== example 572: Images (differs from the spec)
+![foo](/url "title")
+-------- pipeline output
+<ezmark-block key="4156a675fc50d5ed"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo" title="title"></p>
+
+======== example 573: Images (differs from the spec)
+![foo *bar*]
+
+[foo *bar*]: train.jpg "train & tracks"
+-------- pipeline output
+<ezmark-block key="7cd03d43fbc8ad9f"></ezmark-block>
+<p><img src="ezmark-blocked:missing:747261696e2e6a7067" alt="foo bar" title="train &amp; tracks"></p>
+
+======== example 574: Images (differs from the spec)
+![foo ![bar](/url)](/url2)
+-------- pipeline output
+<ezmark-block key="ec8ccd36bb8ee3b2"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c32" alt="foo bar"></p>
+
+======== example 575: Images (differs from the spec)
+![foo [bar](/url)](/url2)
+-------- pipeline output
+<ezmark-block key="e387ec51b252851d"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c32" alt="foo bar"></p>
+
+======== example 576: Images (differs from the spec)
+![foo *bar*][]
+
+[foo *bar*]: train.jpg "train & tracks"
+-------- pipeline output
+<ezmark-block key="1cbd6cb7a0c115a3"></ezmark-block>
+<p><img src="ezmark-blocked:missing:747261696e2e6a7067" alt="foo bar" title="train &amp; tracks"></p>
+
+======== example 577: Images (differs from the spec)
+![foo *bar*][foobar]
+
+[FOOBAR]: train.jpg "train & tracks"
+-------- pipeline output
+<ezmark-block key="04462e7e58ddb334"></ezmark-block>
+<p><img src="ezmark-blocked:missing:747261696e2e6a7067" alt="foo bar" title="train &amp; tracks"></p>
+
+======== example 578: Images (differs from the spec)
+![foo](train.jpg)
+-------- pipeline output
+<ezmark-block key="e5d20e634bfdc2f4"></ezmark-block>
+<p><img src="ezmark-blocked:missing:747261696e2e6a7067" alt="foo"></p>
+
+======== example 579: Images (differs from the spec)
+My ![foo bar](/path/to/train.jpg  "title"   )
+-------- pipeline output
+<ezmark-block key="3e94c600213bfbd2"></ezmark-block>
+<p>My <img src="ezmark-blocked:missing:2f706174682f746f2f747261696e2e6a7067" alt="foo bar" title="title"></p>
+
+======== example 580: Images (differs from the spec)
+![foo](<url>)
+-------- pipeline output
+<ezmark-block key="5c03e5418f448ffa"></ezmark-block>
+<p><img src="ezmark-blocked:missing:75726c" alt="foo"></p>
+
+======== example 581: Images (differs from the spec)
+![](/url)
+-------- pipeline output
+<ezmark-block key="5d22ccbe382d80bd"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt=""></p>
+
+======== example 582: Images (differs from the spec)
+![foo][bar]
+
+[bar]: /url
+-------- pipeline output
+<ezmark-block key="2e5a7f5c218c92f7"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo"></p>
+
+======== example 583: Images (differs from the spec)
+![foo][bar]
+
+[BAR]: /url
+-------- pipeline output
+<ezmark-block key="2e5a7f5c218c92f7"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo"></p>
+
+======== example 584: Images (differs from the spec)
+![foo][]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="95440111c911c456"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo" title="title"></p>
+
+======== example 585: Images (differs from the spec)
+![*foo* bar][]
+
+[*foo* bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="bac8c06555a88ddd"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo bar" title="title"></p>
+
+======== example 586: Images (differs from the spec)
+![Foo][]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="86f6d87c78f9a336"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="Foo" title="title"></p>
+
+======== example 587: Images (differs from the spec)
+![foo] 
+[]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="9ded3216701bdeb4"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo" title="title">
+[]</p>
+
+======== example 588: Images (differs from the spec)
+![foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="2d6019ab4e82536e"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo" title="title"></p>
+
+======== example 589: Images (differs from the spec)
+![*foo* bar]
+
+[*foo* bar]: /url "title"
+-------- pipeline output
+<ezmark-block key="a706f9cb62aa9e9d"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="foo bar" title="title"></p>
+
+======== example 590: Images (differs from the spec)
+![[foo]]
+
+[[foo]]: /url "title"
+-------- pipeline output
+<ezmark-block key="80fcd95a1319e5a8"></ezmark-block>
+<p>![[foo]]</p>
+<ezmark-block key="241f860ce99fdb19"></ezmark-block>
+<p>[[foo]]: /url "title"</p>
+
+======== example 591: Images (differs from the spec)
+![Foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="ac4d58a43510f74e"></ezmark-block>
+<p><img src="ezmark-blocked:missing:2f75726c" alt="Foo" title="title"></p>
+
+======== example 592: Images (same as the spec)
+!\[foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="ed842740c726052a"></ezmark-block>
+<p>![foo]</p>
+
+======== example 593: Images (differs from the spec)
+\![foo]
+
+[foo]: /url "title"
+-------- pipeline output
+<ezmark-block key="61ee531808d7074c"></ezmark-block>
+<p>!<a href="/url" title="title" rel="noopener noreferrer">foo</a></p>
+
+======== example 594: Autolinks (differs from the spec)
+<http://foo.bar.baz>
+-------- pipeline output
+<ezmark-block key="6a00c7067f59e61f"></ezmark-block>
+<p><a href="http://foo.bar.baz" rel="noopener noreferrer">http://foo.bar.baz</a></p>
+
+======== example 595: Autolinks (differs from the spec)
+<https://foo.bar.baz/test?q=hello&id=22&boolean>
+-------- pipeline output
+<ezmark-block key="5936bf8e641ca4d6"></ezmark-block>
+<p><a href="https://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean" rel="noopener noreferrer">https://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean</a></p>
+
+======== example 596: Autolinks (differs from the spec)
+<irc://foo.bar:2233/baz>
+-------- pipeline output
+<ezmark-block key="285d94fd8286680e"></ezmark-block>
+<p><a rel="noopener noreferrer">irc://foo.bar:2233/baz</a></p>
+
+======== example 597: Autolinks (differs from the spec)
+<MAILTO:FOO@BAR.BAZ>
+-------- pipeline output
+<ezmark-block key="142b2f1417b208fd"></ezmark-block>
+<p><a href="MAILTO:FOO@BAR.BAZ" rel="noopener noreferrer">MAILTO:FOO@BAR.BAZ</a></p>
+
+======== example 598: Autolinks (differs from the spec)
+<a+b+c:d>
+-------- pipeline output
+<ezmark-block key="df10bf2268025fef"></ezmark-block>
+<p><a rel="noopener noreferrer">a+b+c:d</a></p>
+
+======== example 599: Autolinks (differs from the spec)
+<made-up-scheme://foo,bar>
+-------- pipeline output
+<ezmark-block key="199ee1a99d61b521"></ezmark-block>
+<p><a rel="noopener noreferrer">made-up-scheme://foo,bar</a></p>
+
+======== example 600: Autolinks (differs from the spec)
+<https://../>
+-------- pipeline output
+<ezmark-block key="3b8dff3689af9031"></ezmark-block>
+<p><a href="https://../" rel="noopener noreferrer">https://../</a></p>
+
+======== example 601: Autolinks (differs from the spec)
+<localhost:5001/foo>
+-------- pipeline output
+<ezmark-block key="61e15b3521fb21ef"></ezmark-block>
+<p><a rel="noopener noreferrer">localhost:5001/foo</a></p>
+
+======== example 602: Autolinks (differs from the spec)
+<https://foo.bar/baz bim>
+-------- pipeline output
+<ezmark-block key="cc35487cdee50b81"></ezmark-block>
+<p>&lt;<a href="https://foo.bar/baz" rel="noopener noreferrer">https://foo.bar/baz</a> bim&gt;</p>
+
+======== example 603: Autolinks (differs from the spec)
+<https://example.com/\[\>
+-------- pipeline output
+<ezmark-block key="7125f970a4bdf089"></ezmark-block>
+<p><a href="https://example.com/%5C%5B%5C" rel="noopener noreferrer">https://example.com/\[\</a></p>
+
+======== example 604: Autolinks (differs from the spec)
+<foo@bar.example.com>
+-------- pipeline output
+<ezmark-block key="c298aaf788711d73"></ezmark-block>
+<p><a href="mailto:foo@bar.example.com" rel="noopener noreferrer">foo@bar.example.com</a></p>
+
+======== example 605: Autolinks (differs from the spec)
+<foo+special@Bar.baz-bar0.com>
+-------- pipeline output
+<ezmark-block key="9616ea778668c1b4"></ezmark-block>
+<p><a href="mailto:foo+special@Bar.baz-bar0.com" rel="noopener noreferrer">foo+special@Bar.baz-bar0.com</a></p>
+
+======== example 606: Autolinks (same as the spec)
+<foo\+@bar.example.com>
+-------- pipeline output
+<ezmark-block key="02a69f3a1baf3064"></ezmark-block>
+<p>&lt;foo+@bar.example.com&gt;</p>
+
+======== example 607: Autolinks (same as the spec)
+<>
+-------- pipeline output
+<ezmark-block key="08098a07b4c86e3f"></ezmark-block>
+<p>&lt;&gt;</p>
+
+======== example 608: Autolinks (differs from the spec)
+< https://foo.bar >
+-------- pipeline output
+<ezmark-block key="41bc8f4fc7f7f74f"></ezmark-block>
+<p>&lt; <a href="https://foo.bar" rel="noopener noreferrer">https://foo.bar</a> &gt;</p>
+
+======== example 609: Autolinks (same as the spec)
+<m:abc>
+-------- pipeline output
+<ezmark-block key="fe25dcfee443bdf2"></ezmark-block>
+<p>&lt;m:abc&gt;</p>
+
+======== example 610: Autolinks (same as the spec)
+<foo.bar.baz>
+-------- pipeline output
+<ezmark-block key="cbd05f2fc81dafc9"></ezmark-block>
+<p>&lt;foo.bar.baz&gt;</p>
+
+======== example 611: Autolinks (differs from the spec)
+https://example.com
+-------- pipeline output
+<ezmark-block key="837b2b5793a240b3"></ezmark-block>
+<p><a href="https://example.com" rel="noopener noreferrer">https://example.com</a></p>
+
+======== example 612: Autolinks (differs from the spec)
+foo@bar.example.com
+-------- pipeline output
+<ezmark-block key="503d30b802c63bc9"></ezmark-block>
+<p><a href="mailto:foo@bar.example.com" rel="noopener noreferrer">foo@bar.example.com</a></p>
+
+======== example 613: Raw HTML (differs from the spec)
+<a><bab><c2c>
+-------- pipeline output
+<ezmark-block key="d033c0f9b9066d13"></ezmark-block>
+<p><a rel="noopener noreferrer"></a></p><a rel="noopener noreferrer">
+</a>
+
+======== example 614: Raw HTML (differs from the spec)
+<a/><b2/>
+-------- pipeline output
+<ezmark-block key="944af90cda620a9c"></ezmark-block>
+<p><a rel="noopener noreferrer"></a></p><a rel="noopener noreferrer">
+</a>
+
+======== example 615: Raw HTML (differs from the spec)
+<a  /><b2
+data="foo" >
+-------- pipeline output
+<ezmark-block key="a4ec4bfc79bfccca"></ezmark-block>
+<p><a rel="noopener noreferrer"></a></p><a rel="noopener noreferrer">
+</a>
+
+======== example 616: Raw HTML (differs from the spec)
+<a foo="bar" bam = 'baz <em>"</em>'
+_boolean zoop:33=zoop:33 />
+-------- pipeline output
+<ezmark-block key="9fc2e900c9a7e11c"></ezmark-block>
+<p><a rel="noopener noreferrer"></a></p><a rel="noopener noreferrer">
+</a>
+
+======== example 617: Raw HTML (differs from the spec)
+Foo <responsive-image src="foo.jpg" />
+-------- pipeline output
+<ezmark-block key="73b12fb85b373c2e"></ezmark-block>
+<p>Foo </p>
+
+======== example 618: Raw HTML (same as the spec)
+<33> <__>
+-------- pipeline output
+<ezmark-block key="35a12c30e7698b73"></ezmark-block>
+<p>&lt;33&gt; &lt;__&gt;</p>
+
+======== example 619: Raw HTML (differs from the spec)
+<a h*#ref="hi">
+-------- pipeline output
+<ezmark-block key="0d7c16e03677230a"></ezmark-block>
+<p>&lt;a h*#ref="hi"&gt;</p>
+
+======== example 620: Raw HTML (differs from the spec)
+<a href="hi'> <a href=hi'>
+-------- pipeline output
+<ezmark-block key="e974d8728edc1463"></ezmark-block>
+<p>&lt;a href="hi'&gt; &lt;a href=hi'&gt;</p>
+
+======== example 621: Raw HTML (same as the spec)
+< a><
+foo><bar/ >
+<foo bar=baz
+bim!bop />
+-------- pipeline output
+<ezmark-block key="c3a03c841467fa0c"></ezmark-block>
+<p>&lt; a&gt;&lt;
+foo&gt;&lt;bar/ &gt;
+&lt;foo bar=baz
+bim!bop /&gt;</p>
+
+======== example 622: Raw HTML (same as the spec)
+<a href='bar'title=title>
+-------- pipeline output
+<ezmark-block key="300857994bc20020"></ezmark-block>
+<p>&lt;a href='bar'title=title&gt;</p>
+
+======== example 623: Raw HTML (differs from the spec)
+</a></foo >
+-------- pipeline output
+<ezmark-block key="ab6e421284e18f0c"></ezmark-block>
+<p></p>
+
+======== example 624: Raw HTML (differs from the spec)
+</a href="foo">
+-------- pipeline output
+<ezmark-block key="4ed57d930fc009a5"></ezmark-block>
+<p>&lt;/a href="foo"&gt;</p>
+
+======== example 625: Raw HTML (differs from the spec)
+foo <!-- this is a --
+comment - with hyphens -->
+-------- pipeline output
+<ezmark-block key="2f17f8b2a5e94d14"></ezmark-block>
+<p>foo </p>
+
+======== example 626: Raw HTML (differs from the spec)
+foo <!--> foo -->
+
+foo <!---> foo -->
+-------- pipeline output
+<ezmark-block key="a646b8d08673fa7e"></ezmark-block>
+<p>foo  foo --&gt;</p>
+<ezmark-block key="f0754311e304e983"></ezmark-block>
+<p>foo  foo --&gt;</p>
+
+======== example 627: Raw HTML (differs from the spec)
+foo <?php echo $a; ?>
+-------- pipeline output
+<ezmark-block key="3c2e96dc8a56241e"></ezmark-block>
+<p>foo </p>
+
+======== example 628: Raw HTML (differs from the spec)
+foo <!ELEMENT br EMPTY>
+-------- pipeline output
+<ezmark-block key="cb0dc221681e341b"></ezmark-block>
+<p>foo </p>
+
+======== example 629: Raw HTML (differs from the spec)
+foo <![CDATA[>&<]]>
+-------- pipeline output
+<ezmark-block key="e015a5b3a266d939"></ezmark-block>
+<p>foo &amp;&lt;]]&gt;</p>
+
+======== example 630: Raw HTML (differs from the spec)
+foo <a href="&ouml;">
+-------- pipeline output
+<ezmark-block key="33ca3b3949a78a38"></ezmark-block>
+<p>foo <a href="ö" rel="noopener noreferrer"></a></p><a href="ö" rel="noopener noreferrer">
+</a>
+
+======== example 631: Raw HTML (differs from the spec)
+foo <a href="\*">
+-------- pipeline output
+<ezmark-block key="7ef37cceab340ee6"></ezmark-block>
+<p>foo <a href="\*" rel="noopener noreferrer"></a></p><a href="\*" rel="noopener noreferrer">
+</a>
+
+======== example 632: Raw HTML (differs from the spec)
+<a href="\"">
+-------- pipeline output
+<ezmark-block key="be072de014dd399e"></ezmark-block>
+<p>&lt;a href="""&gt;</p>
+
+======== example 633: Hard line breaks (differs from the spec)
+foo  
+baz
+-------- pipeline output
+<ezmark-block key="88d16b3b7b7e95f8"></ezmark-block>
+<p>foo<br>
+baz</p>
+
+======== example 634: Hard line breaks (differs from the spec)
+foo\
+baz
+-------- pipeline output
+<ezmark-block key="8674d0df19c1d296"></ezmark-block>
+<p>foo<br>
+baz</p>
+
+======== example 635: Hard line breaks (differs from the spec)
+foo       
+baz
+-------- pipeline output
+<ezmark-block key="9fade366737d3522"></ezmark-block>
+<p>foo<br>
+baz</p>
+
+======== example 636: Hard line breaks (differs from the spec)
+foo  
+     bar
+-------- pipeline output
+<ezmark-block key="c1327bad4a80c9e2"></ezmark-block>
+<p>foo<br>
+bar</p>
+
+======== example 637: Hard line breaks (differs from the spec)
+foo\
+     bar
+-------- pipeline output
+<ezmark-block key="680a91dfdba514ac"></ezmark-block>
+<p>foo<br>
+bar</p>
+
+======== example 638: Hard line breaks (differs from the spec)
+*foo  
+bar*
+-------- pipeline output
+<ezmark-block key="38f3532cbd92e9b6"></ezmark-block>
+<p><em>foo<br>
+bar</em></p>
+
+======== example 639: Hard line breaks (differs from the spec)
+*foo\
+bar*
+-------- pipeline output
+<ezmark-block key="3176197ada166484"></ezmark-block>
+<p><em>foo<br>
+bar</em></p>
+
+======== example 640: Hard line breaks (same as the spec)
+`code  
+span`
+-------- pipeline output
+<ezmark-block key="40267c2b2751118c"></ezmark-block>
+<p><code>code   span</code></p>
+
+======== example 641: Hard line breaks (same as the spec)
+`code\
+span`
+-------- pipeline output
+<ezmark-block key="1068461246d2efc4"></ezmark-block>
+<p><code>code\ span</code></p>
+
+======== example 642: Hard line breaks (differs from the spec)
+<a href="foo  
+bar">
+-------- pipeline output
+<ezmark-block key="7ecbaf01992194d7"></ezmark-block>
+<p><a href="foo  bar" rel="noopener noreferrer"></a></p><a href="foo  bar" rel="noopener noreferrer">
+</a>
+
+======== example 643: Hard line breaks (differs from the spec)
+<a href="foo\
+bar">
+-------- pipeline output
+<ezmark-block key="7264b605a20b29c3"></ezmark-block>
+<p><a href="foo\bar" rel="noopener noreferrer"></a></p><a href="foo\bar" rel="noopener noreferrer">
+</a>
+
+======== example 644: Hard line breaks (same as the spec)
+foo\
+-------- pipeline output
+<ezmark-block key="dd1224790c253811"></ezmark-block>
+<p>foo\</p>
+
+======== example 645: Hard line breaks (same as the spec)
+foo  
+-------- pipeline output
+<ezmark-block key="dcb27518fed9d577"></ezmark-block>
+<p>foo</p>
+
+======== example 646: Hard line breaks (differs from the spec)
+### foo\
+-------- pipeline output
+<ezmark-block key="c49aa7d99549a22c"></ezmark-block>
+<h3 id="user-content-foo">foo\<a href="#user-content-foo" aria-label="Link to heading 'foo\'" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 647: Hard line breaks (differs from the spec)
+### foo  
+-------- pipeline output
+<ezmark-block key="ae9ef100800c8778"></ezmark-block>
+<h3 id="user-content-foo">foo<a href="#user-content-foo" aria-label="Link to heading 'foo'" class="anchor" rel="noopener noreferrer"></a></h3>
+
+======== example 648: Soft line breaks (same as the spec)
+foo
+baz
+-------- pipeline output
+<ezmark-block key="d2021107a1225880"></ezmark-block>
+<p>foo
+baz</p>
+
+======== example 649: Soft line breaks (same as the spec)
+foo 
+ baz
+-------- pipeline output
+<ezmark-block key="87e02cdc140d40b0"></ezmark-block>
+<p>foo
+baz</p>
+
+======== example 650: Textual content (same as the spec)
+hello $.;'there
+-------- pipeline output
+<ezmark-block key="dcafadb0ee4d71c5"></ezmark-block>
+<p>hello $.;'there</p>
+
+======== example 651: Textual content (same as the spec)
+Foo χρῆν
+-------- pipeline output
+<ezmark-block key="2e78d4c8e609610e"></ezmark-block>
+<p>Foo χρῆν</p>
+
+======== example 652: Textual content (same as the spec)
+Multiple     spaces
+-------- pipeline output
+<ezmark-block key="78eb2b6f516c6b14"></ezmark-block>
+<p>Multiple     spaces</p>

@@ -11,6 +11,7 @@ publish.workspace = true
 [dependencies]
 comrak.workspace = true
 ammonia.workspace = true
+syntect.workspace = true
 percent-encoding.workspace = true
 
 [lints]
