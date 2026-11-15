@@ -9,16 +9,25 @@
 //!
 //! Rendering never runs on the UI thread, and never fails silently: a file
 //! that cannot be read, and a render that panics, both end in an error view.
+//!
+//! All rendering happens on one thread with a one-slot mailbox (plan section
+//! 9): a new job replaces a waiting one, so however fast requests arrive, at
+//! most one render is running and one is waiting.
+//!
+//! Live reload comes in through [`request_reload`], called by the watcher
+//! (`watch.rs`) when the open file may have changed. The file is read again
+//! and rendered only if its bytes differ from the ones on screen.
 
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
+use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 use crate::MAIN_WINDOW;
 use crate::asset;
+use crate::watch::Watcher;
 
 /// Files above this size are refused before parsing (plan section 9).
 pub const MAX_DOCUMENT_BYTES: u64 = 50 * 1024 * 1024;
@@ -28,6 +37,20 @@ pub const VIEW_CHANGED: &str = "ezmark://view-changed";
 
 /// Event telling the frontend that a render has started. Payload: [`Loading`].
 pub const LOADING: &str = "ezmark://loading";
+
+/// Event telling the frontend whether the open file still exists. Payload:
+/// [`FileStatus`].
+pub const FILE_STATUS: &str = "ezmark://file-status";
+
+/// Whether the file on screen is still where it was opened from.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileStatus {
+    /// True once the file has been gone for longer than an editor's save takes.
+    pub missing: bool,
+    /// The file's name, for the message.
+    pub title: String,
+}
 
 /// Where an open request came from. All four originate in Rust or the OS,
 /// never in a document (plan section 7).
@@ -99,9 +122,86 @@ pub struct AssetScope {
     pub root: PathBuf,
 }
 
+/// The file a view was rendered from, and which bytes of it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Source {
+    /// Canonical path.
+    path: PathBuf,
+    /// What the file held when it was read: its length and a hash.
+    fingerprint: (usize, u64),
+}
+
+impl Source {
+    fn of(path: &Path, bytes: &[u8]) -> Self {
+        Self {
+            path: path.to_path_buf(),
+            fingerprint: (bytes.len(), mdcore::content_hash(bytes)),
+        }
+    }
+}
+
+/// Work for the render thread.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Job {
+    /// Open `path` as generation `generation`.
+    Open { path: PathBuf, generation: u64 },
+    /// The file at this canonical path may have changed; look again.
+    Reload { path: PathBuf },
+}
+
+/// The render thread's mailbox: one slot, so waiting jobs coalesce.
+#[derive(Debug, Default)]
+struct Mailbox {
+    slot: Mutex<Option<Job>>,
+    arrived: Condvar,
+    thread_started: OnceLock<()>,
+}
+
+impl Mailbox {
+    /// Leave `job` for the render thread, replacing whatever waits there.
+    ///
+    /// Two exceptions. A reload never replaces a waiting open: the open is
+    /// the newer wish, and it reads the file afresh anyway. And an open never
+    /// replaces a waiting open of a later generation: generations are given
+    /// out under one lock but jobs are handed over outside it, so two opens
+    /// can arrive here in the wrong order, and the older one could never be
+    /// committed while the newer one would be lost.
+    fn put(&self, job: Job) {
+        let mut slot = self.slot.lock().unwrap_or_else(|p| p.into_inner());
+        let keep_waiting = match (&*slot, &job) {
+            (Some(Job::Open { .. }), Job::Reload { .. }) => true,
+            (
+                Some(Job::Open {
+                    generation: waiting,
+                    ..
+                }),
+                Job::Open { generation, .. },
+            ) => waiting > generation,
+            _ => false,
+        };
+        if keep_waiting {
+            return;
+        }
+        *slot = Some(job);
+        self.arrived.notify_one();
+    }
+
+    /// Wait for the next job.
+    fn take(&self) -> Job {
+        let mut slot = self.slot.lock().unwrap_or_else(|p| p.into_inner());
+        loop {
+            if let Some(job) = slot.take() {
+                return job;
+            }
+            slot = self.arrived.wait(slot).unwrap_or_else(|p| p.into_inner());
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Documents {
     inner: Mutex<Inner>,
+    mailbox: Mailbox,
 }
 
 #[derive(Debug)]
@@ -110,6 +210,10 @@ struct Inner {
     pending: Option<PathBuf>,
     generation: u64,
     view: View,
+    /// What `view` was rendered from, if it came from a file that was read.
+    source: Option<Source>,
+    /// True while the frontend has been told the file is gone.
+    missing: bool,
     loading: Option<Loading>,
     scope: Option<AssetScope>,
     scopes_issued: u64,
@@ -127,6 +231,8 @@ impl Default for Inner {
                 generation: 0,
                 content: ViewContent::Empty,
             },
+            source: None,
+            missing: false,
             loading: None,
             scope: None,
             scopes_issued: 0,
@@ -232,19 +338,80 @@ impl Documents {
     }
 
     /// Commit a finished render, unless a newer request was accepted since.
-    fn commit(&self, generation: u64, content: ViewContent, scope: Option<AssetScope>) -> bool {
+    fn commit(&self, generation: u64, loaded: Loaded) -> bool {
         let mut inner = self.lock();
         if inner.generation != generation {
             return false;
         }
         inner.view = View {
             generation,
-            content,
+            content: loaded.content,
         };
-        inner.scope = scope;
+        inner.scope = loaded.scope;
+        // "Missing" is about the file, not the view. A reload that was being
+        // rendered when the file went away must not take the message down
+        // again; only a view of a different file, or of none, does.
+        let same_file = match (&inner.source, &loaded.source) {
+            (Some(old), Some(new)) => old.path == new.path,
+            _ => false,
+        };
+        if !same_file {
+            inner.missing = false;
+        }
+        inner.source = loaded.source;
         inner.loading = None;
         true
     }
+
+    /// Decide what a reload of the file at `path`, now holding `bytes`, should
+    /// do. A render starts only if that file is the one on screen, nothing
+    /// newer has been asked for, and the bytes are not the ones on screen.
+    fn begin_reload(&self, path: &Path, bytes: &[u8]) -> Reload {
+        let mut inner = self.lock();
+        let now = Source::of(path, bytes);
+        let on_screen = inner.source.as_ref().filter(|source| source.path == path);
+        let Some(unchanged) = on_screen.map(|source| *source == now) else {
+            return Reload::Stale;
+        };
+        if inner.loading.is_some() {
+            // An open is on its way and will read the file itself.
+            return Reload::Stale;
+        }
+        // The file was just read, so it is there.
+        let was_missing = std::mem::take(&mut inner.missing);
+        if unchanged {
+            return Reload::Unchanged { was_missing };
+        }
+        Reload::Changed {
+            loading: inner.begin(path),
+            was_missing,
+        }
+    }
+
+    /// Note that the file on screen is gone. True if this is news.
+    fn mark_missing(&self, path: &Path) -> Option<FileStatus> {
+        let mut inner = self.lock();
+        let on_screen = inner.source.as_ref().is_some_and(|s| s.path == path);
+        if !on_screen || inner.missing {
+            return None;
+        }
+        inner.missing = true;
+        Some(FileStatus {
+            missing: true,
+            title: display_name(path),
+        })
+    }
+}
+
+/// What [`Documents::begin_reload`] decided.
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum Reload {
+    /// The file is not the one on screen, or something newer is under way.
+    Stale,
+    /// Same bytes as on screen: nothing to render.
+    Unchanged { was_missing: bool },
+    /// Different bytes: render them as this generation.
+    Changed { loading: Loading, was_missing: bool },
 }
 
 /// Open `path` now, or once the frontend is ready.
@@ -253,7 +420,13 @@ pub fn request_open<R: Runtime>(app: &AppHandle<R>, path: PathBuf, origin: OpenO
         return;
     };
     let _ = app.emit_to(MAIN_WINDOW, LOADING, &loading);
-    spawn_open(app.clone(), path, loading.generation);
+    submit(
+        app,
+        Job::Open {
+            path,
+            generation: loading.generation,
+        },
+    );
 }
 
 /// Called once the frontend listens for view changes. Starts the buffered
@@ -262,41 +435,165 @@ pub fn request_open<R: Runtime>(app: &AppHandle<R>, path: PathBuf, origin: OpenO
 pub fn frontend_ready<R: Runtime>(app: &AppHandle<R>) -> Ready {
     let (ready, replay) = app.state::<Documents>().mark_ready();
     if let Some((path, generation)) = replay {
-        spawn_open(app.clone(), path, generation);
+        submit(app, Job::Open { path, generation });
     }
     ready
 }
 
-fn spawn_open<R: Runtime>(app: AppHandle<R>, path: PathBuf, generation: u64) {
-    tauri::async_runtime::spawn_blocking(move || open_now(&app, &path, generation));
+/// The watcher saw the file at `path` (canonical) change, or thinks it may have.
+pub fn request_reload<R: Runtime>(app: &AppHandle<R>, path: PathBuf) {
+    submit(app, Job::Reload { path });
+}
+
+/// The watcher found the file at `path` (canonical) gone, and it stayed gone
+/// for longer than a save takes. The view stays; the reader is told.
+pub fn report_missing<R: Runtime>(app: &AppHandle<R>, path: &Path) {
+    if let Some(status) = app.state::<Documents>().mark_missing(path) {
+        let _ = app.emit_to(MAIN_WINDOW, FILE_STATUS, &status);
+    }
+}
+
+/// Hand `job` to the render thread, starting the thread on first use.
+fn submit<R: Runtime>(app: &AppHandle<R>, job: Job) {
+    let documents = app.state::<Documents>();
+    documents.mailbox.put(job);
+    documents.mailbox.thread_started.get_or_init(|| {
+        let app = app.clone();
+        let spawned = std::thread::Builder::new()
+            .name("ezmark-render".to_owned())
+            // The parser recurses; give it more room than the default.
+            .stack_size(8 * 1024 * 1024)
+            .spawn(move || render_thread(&app));
+        if let Err(error) = spawned {
+            eprintln!("ezmark: could not start the render thread: {error}");
+        }
+    });
+}
+
+fn render_thread<R: Runtime>(app: &AppHandle<R>) {
+    let documents = app.state::<Documents>();
+    loop {
+        let job = documents.mailbox.take();
+        // `open_now` already turns a panicking render into an error view.
+        // This catches anything else, so the thread outlives it.
+        let outcome = catch_unwind(AssertUnwindSafe(|| match &job {
+            Job::Open { path, generation } => open_now(app, path, *generation),
+            Job::Reload { path } => reload_now(app, path),
+        }));
+        if outcome.is_err() {
+            eprintln!("ezmark: a render job panicked: {job:?}");
+        }
+    }
 }
 
 fn open_now<R: Runtime>(app: &AppHandle<R>, path: &Path, generation: u64) {
     let documents = app.state::<Documents>();
-    let (content, scope) = guarded(path, || {
-        load(
-            path,
+    let loaded = guarded(path, || {
+        let (canonical, bytes) = read(path)?;
+        render(
+            &canonical,
+            &bytes,
             &|doc_dir, root| documents.scope_id(doc_dir, root),
             home_dir(),
         )
     });
-    if !documents.commit(generation, content, scope) {
+    let watch = loaded.source.as_ref().map(|source| source.path.clone());
+    if !documents.commit(generation, loaded) {
         return; // superseded by a newer request
     }
+    // Watch what is on screen; an error view has nothing to watch.
+    if let Some(watcher) = app.try_state::<Watcher>() {
+        watcher.watch(watch);
+    }
+    announce(app, generation);
+}
 
+/// Look at the open file again, and render it if its bytes changed.
+fn reload_now<R: Runtime>(app: &AppHandle<R>, path: &Path) {
+    let documents = app.state::<Documents>();
+    let Ok((canonical, bytes)) = read(path) else {
+        // The file is there (the watcher checked) but cannot be read right
+        // now: an editor holds it open mid-save, say. Nothing may ever tell
+        // us when it lets go, so ask the watcher to look again shortly. The
+        // view on screen stays as it is.
+        if let Some(watcher) = app.try_state::<Watcher>() {
+            watcher.retry();
+        }
+        return;
+    };
+    if !same_file_name(&canonical, path) {
+        return; // the name now leads somewhere else, e.g. a swapped symlink
+    }
+    let decision = documents.begin_reload(path, &bytes);
+    #[cfg(feature = "test-harness")]
+    crate::harness::reload_checked(&decision);
+    let (loading, was_missing) = match decision {
+        Reload::Stale => return,
+        Reload::Unchanged { was_missing } => (None, was_missing),
+        Reload::Changed {
+            loading,
+            was_missing,
+        } => (Some(loading), was_missing),
+    };
+    if was_missing {
+        let status = FileStatus {
+            missing: false,
+            title: display_name(path),
+        };
+        let _ = app.emit_to(MAIN_WINDOW, FILE_STATUS, &status);
+    }
+    let Some(loading) = loading else { return };
+    let _ = app.emit_to(MAIN_WINDOW, LOADING, &loading);
+    let loaded = guarded(path, || {
+        render(
+            path,
+            &bytes,
+            &|doc_dir, root| documents.scope_id(doc_dir, root),
+            home_dir(),
+        )
+    });
+    // Whatever came of it, these are the bytes it came from: an unchanged
+    // file is not rendered again, and a changed one is.
+    let loaded = Loaded {
+        source: Some(Source::of(path, &bytes)),
+        ..loaded
+    };
+    if documents.commit(loading.generation, loaded) {
+        announce(app, loading.generation);
+    }
+}
+
+/// True if `canonical` is `path`, allowing for a rename that changed only
+/// the case of a name. Windows and macOS file systems ignore case by default,
+/// so the old spelling still opens the file, and canonicalizing it returns
+/// the new one.
+fn same_file_name(canonical: &Path, path: &Path) -> bool {
+    canonical == path
+        || (cfg!(any(windows, target_os = "macos"))
+            && canonical
+                .to_string_lossy()
+                .eq_ignore_ascii_case(&path.to_string_lossy()))
+}
+
+fn announce<R: Runtime>(app: &AppHandle<R>, generation: u64) {
     update_title(app);
     let _ = app.emit_to(MAIN_WINDOW, VIEW_CHANGED, generation);
+}
+
+/// A finished load: what to show, and what it was made from.
+#[derive(Debug)]
+struct Loaded {
+    content: ViewContent,
+    scope: Option<AssetScope>,
+    source: Option<Source>,
 }
 
 /// Run a load, turning both a failure and a panic into an error view. The
 /// parser and sanitizer are third-party code fed hostile input; if one of
 /// them panics, the reader must still be told that the file did not open.
-fn guarded(
-    path: &Path,
-    load: impl FnOnce() -> Result<(ViewContent, AssetScope), String>,
-) -> (ViewContent, Option<AssetScope>) {
+fn guarded(path: &Path, load: impl FnOnce() -> Result<Loaded, String>) -> Loaded {
     let message = match catch_unwind(AssertUnwindSafe(load)) {
-        Ok(Ok((content, scope))) => return (content, Some(scope)),
+        Ok(Ok(loaded)) => return loaded,
         Ok(Err(message)) => message,
         // The panic hook has already written the details to stderr.
         Err(_) => format!(
@@ -307,11 +604,14 @@ fn guarded(
         ),
     };
     eprintln!("ezmark: {message}");
-    let content = ViewContent::Error {
-        title: display_name(path),
-        message,
-    };
-    (content, None)
+    Loaded {
+        content: ViewContent::Error {
+            title: display_name(path),
+            message,
+        },
+        scope: None,
+        source: None,
+    }
 }
 
 /// Title the window after the view that is current when this runs, not the
@@ -337,14 +637,8 @@ fn window_title(content: &ViewContent) -> String {
     }
 }
 
-/// Read, decode, and render `path`. `scope_id` supplies the id for the asset
-/// URLs of a document in a given directory and root; `home` is the user's
-/// canonical home directory, which bounds how far up a root may reach.
-fn load(
-    path: &Path,
-    scope_id: &dyn Fn(&Path, &Path) -> u64,
-    home: Option<&Path>,
-) -> Result<(ViewContent, AssetScope), String> {
+/// Read `path`: its canonical form and its bytes, or why it cannot be shown.
+fn read(path: &Path) -> Result<(PathBuf, Vec<u8>), String> {
     let shown = dunce::simplified(path).display();
     let canonical = std::fs::canonicalize(path).map_err(|error| match error.kind() {
         std::io::ErrorKind::NotFound => format!("File not found: {shown}"),
@@ -363,7 +657,21 @@ fn load(
     }
     let bytes =
         std::fs::read(&canonical).map_err(|error| format!("Could not read {shown}: {error}"))?;
-    let decoded = mdcore::decode(&bytes);
+    Ok((canonical, bytes))
+}
+
+/// Decode and render the `bytes` read from `canonical`. `scope_id` supplies
+/// the id for the asset URLs of a document in a given directory and root;
+/// `home` is the user's canonical home directory, which bounds how far up a
+/// root may reach.
+fn render(
+    canonical: &Path,
+    bytes: &[u8],
+    scope_id: &dyn Fn(&Path, &Path) -> u64,
+    home: Option<&Path>,
+) -> Result<Loaded, String> {
+    let shown = dunce::simplified(canonical).display();
+    let decoded = mdcore::decode(bytes);
 
     let doc_dir = canonical
         .parent()
@@ -401,14 +709,16 @@ fn load(
         notices.push(notice);
     }
 
-    let content = ViewContent::Document {
-        title: display_name(&canonical),
-        path: dunce::simplified(&canonical).display().to_string(),
-        html: rendered.html,
-        notices,
-    };
-    let scope = AssetScope { id, doc_dir, root };
-    Ok((content, scope))
+    Ok(Loaded {
+        content: ViewContent::Document {
+            title: display_name(canonical),
+            path: dunce::simplified(canonical).display().to_string(),
+            html: rendered.html,
+            notices,
+        },
+        scope: Some(AssetScope { id, doc_dir, root }),
+        source: Some(Source::of(canonical, bytes)),
+    })
 }
 
 /// The enclosing git repository root if there is one, else the document's own
@@ -500,7 +810,44 @@ mod tests {
     }
 
     fn load_plain(path: &Path) -> Result<(ViewContent, AssetScope), String> {
-        load(path, &|_, _| 7, None)
+        let (canonical, bytes) = read(path)?;
+        let loaded = render(&canonical, &bytes, &|_, _| 7, None)?;
+        Ok((
+            loaded.content,
+            loaded.scope.expect("a document has a scope"),
+        ))
+    }
+
+    /// Commit a view that was not read from a file.
+    fn commit(
+        docs: &Documents,
+        generation: u64,
+        content: ViewContent,
+        scope: Option<AssetScope>,
+    ) -> bool {
+        docs.commit(
+            generation,
+            Loaded {
+                content,
+                scope,
+                source: None,
+            },
+        )
+    }
+
+    /// Commit `bytes` read from `path` as the document on screen.
+    fn show(docs: &Documents, path: &Path, bytes: &[u8]) -> u64 {
+        let generation = docs
+            .accept(path, OpenOrigin::DragDrop)
+            .expect("the frontend is ready")
+            .generation;
+        let loaded = Loaded {
+            content: document(&display_name(path)),
+            scope: None,
+            source: Some(Source::of(path, bytes)),
+        };
+        assert!(docs.commit(generation, loaded));
+        generation
     }
 
     fn loaded(path: &Path) -> (String, Vec<String>) {
@@ -539,8 +886,8 @@ mod tests {
         let older = accept(&docs, "a.md");
         let newer = accept(&docs, "b.md");
 
-        assert!(docs.commit(newer, document("b.md"), None));
-        assert!(!docs.commit(older, document("a.md"), None));
+        assert!(commit(&docs, newer, document("b.md"), None));
+        assert!(!commit(&docs, older, document("a.md"), None));
         assert_eq!(shown(&docs), (newer, Some("b.md".to_owned())));
     }
 
@@ -551,9 +898,9 @@ mod tests {
         let older = accept(&docs, "a.md");
         let newer = accept(&docs, "b.md");
 
-        assert!(!docs.commit(older, document("a.md"), None));
+        assert!(!commit(&docs, older, document("a.md"), None));
         assert_eq!(shown(&docs), (0, None), "still the empty view");
-        assert!(docs.commit(newer, document("b.md"), None));
+        assert!(commit(&docs, newer, document("b.md"), None));
         assert_eq!(shown(&docs), (newer, Some("b.md".to_owned())));
     }
 
@@ -566,16 +913,193 @@ mod tests {
         let loading = |docs: &Documents| docs.mark_ready().0.loading.map(|l| l.generation);
 
         assert_eq!(loading(&docs), Some(newer));
-        docs.commit(older, document("a.md"), None);
+        commit(&docs, older, document("a.md"), None);
         assert_eq!(
             loading(&docs),
             Some(newer),
             "a superseded commit changes nothing"
         );
-        docs.commit(newer, document("b.md"), None);
+        commit(&docs, newer, document("b.md"), None);
         assert_eq!(loading(&docs), None);
         // A page reload asks again and gets the committed view back.
         assert_eq!(docs.mark_ready().0.view.generation, newer);
+    }
+
+    #[test]
+    fn a_waiting_job_is_replaced_but_a_reload_never_replaces_an_open() {
+        let open = |generation| Job::Open {
+            path: PathBuf::from("a.md"),
+            generation,
+        };
+        let reload = || Job::Reload {
+            path: PathBuf::from("a.md"),
+        };
+        let mailbox = Mailbox::default();
+
+        mailbox.put(reload());
+        mailbox.put(reload());
+        assert_eq!(mailbox.take(), reload(), "ten saves, one job");
+        assert!(mailbox.slot.lock().unwrap().is_none());
+
+        mailbox.put(open(1));
+        mailbox.put(open(2));
+        assert_eq!(mailbox.take(), open(2), "the latest open wins");
+
+        mailbox.put(open(3));
+        mailbox.put(reload());
+        assert_eq!(mailbox.take(), open(3), "the open is not lost to a reload");
+
+        mailbox.put(reload());
+        mailbox.put(open(4));
+        assert_eq!(mailbox.take(), open(4));
+
+        // Two opens handed over in the wrong order: the later generation is
+        // the one that can still be committed, so it must be the one kept.
+        mailbox.put(open(6));
+        mailbox.put(open(5));
+        assert_eq!(
+            mailbox.take(),
+            open(6),
+            "an older open does not displace it"
+        );
+        assert!(mailbox.slot.lock().unwrap().is_none());
+    }
+
+    #[test]
+    fn a_reload_renders_only_when_the_bytes_on_screen_changed() {
+        let docs = Documents::default();
+        docs.mark_ready();
+        let path = Path::new("dir").join("a.md");
+        assert_eq!(
+            docs.begin_reload(&path, b"one"),
+            Reload::Stale,
+            "nothing open"
+        );
+
+        let shown = show(&docs, &path, b"one");
+        assert_eq!(
+            docs.begin_reload(&path, b"one"),
+            Reload::Unchanged { was_missing: false },
+            "saved without a change: no render"
+        );
+        assert_eq!(docs.view().generation, shown);
+        assert_eq!(
+            docs.begin_reload(Path::new("other.md"), b"two"),
+            Reload::Stale,
+            "not the file on screen"
+        );
+
+        let Reload::Changed { loading, .. } = docs.begin_reload(&path, b"two") else {
+            panic!("changed bytes must render");
+        };
+        assert!(loading.generation > shown);
+        assert_eq!(loading.title, "a.md");
+        // Same length, different bytes: the hash tells them apart.
+        assert_ne!(Source::of(&path, b"one"), Source::of(&path, b"two"));
+    }
+
+    #[test]
+    fn a_reload_gives_way_to_an_open_that_is_under_way() {
+        let docs = Documents::default();
+        docs.mark_ready();
+        let path = Path::new("a.md");
+        show(&docs, path, b"one");
+        let opening = accept(&docs, "b.md");
+        assert_eq!(docs.begin_reload(path, b"two"), Reload::Stale);
+        assert_eq!(
+            docs.mark_ready().0.loading.map(|l| l.generation),
+            Some(opening),
+            "the open is still the one awaited"
+        );
+    }
+
+    #[test]
+    fn a_missing_file_is_reported_once_and_cleared_when_it_returns() {
+        let docs = Documents::default();
+        docs.mark_ready();
+        let path = Path::new("a.md");
+        assert_eq!(docs.mark_missing(path), None, "nothing open");
+        show(&docs, path, b"one");
+        assert_eq!(docs.mark_missing(Path::new("b.md")), None);
+
+        let status = docs.mark_missing(path).expect("news");
+        assert_eq!(
+            status,
+            FileStatus {
+                missing: true,
+                title: "a.md".to_owned()
+            }
+        );
+        assert_eq!(docs.mark_missing(path), None, "said once");
+
+        assert_eq!(
+            docs.begin_reload(path, b"one"),
+            Reload::Unchanged { was_missing: true },
+            "back with the same bytes: clear the message, render nothing"
+        );
+        assert_eq!(
+            docs.begin_reload(path, b"one"),
+            Reload::Unchanged { was_missing: false }
+        );
+
+        // Back with different bytes: the message is withdrawn, then the
+        // new bytes are rendered.
+        docs.mark_missing(path).expect("gone again");
+        let Reload::Changed {
+            loading,
+            was_missing,
+        } = docs.begin_reload(path, b"two")
+        else {
+            panic!("changed bytes must render");
+        };
+        assert!(was_missing);
+        let reloaded = |bytes: &[u8]| Loaded {
+            content: document("a.md"),
+            scope: None,
+            source: Some(Source::of(path, bytes)),
+        };
+        assert!(docs.commit(loading.generation, reloaded(b"two")));
+        assert!(docs.mark_missing(path).is_some(), "the flag was reset");
+    }
+
+    #[test]
+    fn a_file_deleted_during_a_reload_is_still_reported_missing_afterwards() {
+        let docs = Documents::default();
+        docs.mark_ready();
+        let path = Path::new("a.md");
+        show(&docs, path, b"one");
+        let Reload::Changed { loading, .. } = docs.begin_reload(path, b"two") else {
+            panic!("changed bytes must render");
+        };
+        // While "two" is being rendered, the file goes and stays gone.
+        assert!(docs.mark_missing(path).is_some());
+        let loaded = Loaded {
+            content: document("a.md"),
+            scope: None,
+            source: Some(Source::of(path, b"two")),
+        };
+        assert!(docs.commit(loading.generation, loaded));
+        assert_eq!(
+            docs.mark_missing(path),
+            None,
+            "the commit did not take the message down, so there is no news"
+        );
+
+        // Opening another file does.
+        show(&docs, Path::new("b.md"), b"other");
+        show(&docs, path, b"two");
+        assert!(docs.mark_missing(path).is_some());
+    }
+
+    #[test]
+    fn a_rename_that_only_changes_case_is_still_the_same_file() {
+        let (old, new) = (Path::new("dir/Case.md"), Path::new("dir/case.md"));
+        assert!(same_file_name(old, old));
+        assert_eq!(
+            same_file_name(new, old),
+            cfg!(any(windows, target_os = "macos"))
+        );
+        assert!(!same_file_name(Path::new("dir/other.md"), old));
     }
 
     #[test]
@@ -590,7 +1114,8 @@ mod tests {
         };
 
         let first = docs.scope_id(a, a);
-        docs.commit(
+        commit(
+            &docs,
             accept(&docs, "a/one.md"),
             document("one.md"),
             Some(scope(first, a)),
@@ -613,7 +1138,8 @@ mod tests {
             docs.asset_scope(second).is_none(),
             "not current until committed"
         );
-        docs.commit(
+        commit(
+            &docs,
             accept(&docs, "b/two.md"),
             document("two.md"),
             Some(scope(second, b)),
@@ -625,7 +1151,7 @@ mod tests {
         assert!(docs.asset_scope(second).is_some());
 
         // An error view has no scope, and the next document gets a new one.
-        docs.commit(accept(&docs, "missing.md"), ViewContent::Empty, None);
+        commit(&docs, accept(&docs, "missing.md"), ViewContent::Empty, None);
         assert!(docs.asset_scope(second).is_none());
         assert!(docs.scope_id(b, b) > second);
     }
@@ -633,8 +1159,12 @@ mod tests {
     #[test]
     fn a_panicking_render_becomes_an_error_view() {
         let path = Path::new("dir").join("boom.md");
-        let (content, scope) = guarded(&path, || panic!("simulated parser panic"));
-        assert!(scope.is_none());
+        let Loaded {
+            content,
+            scope,
+            source,
+        } = guarded(&path, || panic!("simulated parser panic"));
+        assert!(scope.is_none() && source.is_none());
         let ViewContent::Error { title, message } = content else {
             panic!("not an error view: {content:?}");
         };
@@ -643,7 +1173,7 @@ mod tests {
         assert!(message.contains("boom.md"), "{message}");
         assert!(message.contains("/issues"), "{message}");
 
-        let (content, _) = guarded(&path, || Err("File not found: x".to_owned()));
+        let content = guarded(&path, || Err("File not found: x".to_owned())).content;
         assert!(
             matches!(content, ViewContent::Error { message, .. } if message == "File not found: x")
         );

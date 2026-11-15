@@ -166,3 +166,53 @@ downloaded and compiled. Other applications were open throughout.
 This is the first run on a macOS newer than the `macos-15` runner. What was
 checked by hand, and the one test that failed (`finder_open`), is in
 [m0-evidence.md](m0-evidence.md). No network measurement was made here.
+
+## M1 engine and live reload, 2026-11-14
+
+Same author's machine as above, release build.
+
+### Release binary
+
+| Build | `ezmark.exe` |
+|---|---|
+| After the audit (2026-11-13) | 10,761,728 bytes |
+| With syntect (grammars compiled in) and notify | 13,318,656 bytes |
+
+The 2.6 MB is almost all the grammar set. The clean first-build time was not
+measured again; it is due before the README's number is next quoted.
+
+### Render time, whole pipeline
+
+`cargo run --release -p mdcore --example timing`. Every figure includes
+parsing, block markers, highlighting, and sanitizing.
+
+| Input | Size in | HTML out | Time |
+|---|---|---|---|
+| First highlighted render (loads the grammars) | | | 20 ms |
+| Ordinary mixed markdown | 50 KB | 275 KB | 41 ms |
+| Ordinary mixed markdown | 1 MB | 5.6 MB | 828 ms |
+| Ordinary mixed markdown | 10 MB | 51 MB | 4,133 ms |
+| One 3,500-line Rust block, inside the highlight budget | 252 KB | 1.1 MB | 685 ms |
+| One 10,000-line Rust block, over the budget, shown plain | 722 KB | 722 KB | 4 ms |
+| 20,000 nested quotes (plain-text fallback) | 19 KB | 78 KB | 5 ms |
+| 50,000 unclosed `<div>` (plain-text fallback) | 292 KB | 585 KB | 37 ms |
+| 100,000 unclosed emphasis markers | 292 KB | 293 KB | 30 ms |
+| 50,000 unclosed links | 195 KB | 195 KB | 34 ms |
+
+The "ordinary mixed" fixture is one short section repeated, with a heading, a
+table, a list, and a small Rust block in each, so it has far more blocks per
+kilobyte than real prose: the 1 MB file holds about 33,000 top-level blocks
+and 6,500 code blocks.
+
+What M1 cost: the same 1 MB fixture took 190 ms before highlighting and block
+markers, and the 10 MB one 1,960 ms. Highlighting runs at about 370 KB of code
+a second and is capped at 256 KB a document, so it adds at most about 0.7 s.
+The rest is the marker before each block (52 bytes, and one more element for
+the sanitizer to parse), which matters only at this block density.
+
+### What the stock highlighter output would have cost
+
+The same 433 KB Rust block through syntect's own class writer, before it was
+replaced: 11.5 MB of HTML and 1,421 ms. Through the flat writer: 1.9 MB and
+1,199 ms. The time is the grammar's regular expressions either way; the
+saving is in what the sanitizer and the webview then have to parse.

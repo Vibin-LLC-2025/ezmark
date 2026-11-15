@@ -1,0 +1,64 @@
+/* Colours for highlighted code.
+ *
+ * The highlighter (crates/mdcore/src/highlight.rs) runs in Rust and emits
+ * classes from a fixed list, never inline styles: the Content Security Policy
+ * allows styles from this bundle only. A test there fails if this file and
+ * that list drift apart.
+ *
+ * The palette is GitHub's (primer/primitives "prettylights", MIT), light and
+ * dark. The theme switches through custom properties, so changing it never
+ * needs the document rendered again.
+ */
+
+:root {
+  --hl-comment: #59636e;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-constant: #0550ae;
+  --hl-entity: #6639ba;
+  --hl-tag: #116329;
+  --hl-variable: #953800;
+  --hl-heading: #0550ae;
+  --hl-inserted-text: #116329;
+  --hl-inserted-back: #dafbe1;
+  --hl-deleted-text: #82071e;
+  --hl-deleted-back: #ffebe9;
+  --hl-changed-text: #953800;
+  --hl-changed-back: #ffd8b5;
+  --hl-invalid: #82071e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hl-comment: #9198a1;
+    --hl-keyword: #ff7b72;
+    --hl-string: #a5d6ff;
+    --hl-constant: #79c0ff;
+    --hl-entity: #d2a8ff;
+    --hl-tag: #7ee787;
+    --hl-variable: #ffa657;
+    --hl-heading: #79c0ff;
+    --hl-inserted-text: #aff5b4;
+    --hl-inserted-back: #033a16;
+    --hl-deleted-text: #ffdcd7;
+    --hl-deleted-back: #67060c;
+    --hl-changed-text: #ffdfb6;
+    --hl-changed-back: #5a1e02;
+    --hl-invalid: #ffa198;
+  }
+}
+
+.hl-comment { color: var(--hl-comment); }
+.hl-keyword { color: var(--hl-keyword); }
+.hl-string { color: var(--hl-string); }
+.hl-constant { color: var(--hl-constant); }
+.hl-entity { color: var(--hl-entity); }
+.hl-tag { color: var(--hl-tag); }
+.hl-variable { color: var(--hl-variable); }
+.hl-heading { color: var(--hl-heading); font-weight: 600; }
+.hl-bold { font-weight: 600; }
+.hl-italic { font-style: italic; }
+.hl-inserted { color: var(--hl-inserted-text); background-color: var(--hl-inserted-back); }
+.hl-deleted { color: var(--hl-deleted-text); background-color: var(--hl-deleted-back); }
+.hl-changed { color: var(--hl-changed-text); background-color: var(--hl-changed-back); }
+.hl-invalid { color: var(--hl-invalid); }

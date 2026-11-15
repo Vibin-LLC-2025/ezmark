@@ -10,6 +10,9 @@ type View = { generation: number } & (
 /** A render that has started and not finished. Mirrors `documents::Loading`. */
 type Loading = { generation: number; title: string };
 
+/** Whether the open file is still there. Mirrors `documents::FileStatus`. */
+type FileStatus = { missing: boolean; title: string };
+
 /** The reply to `frontend_ready`. Mirrors `documents::Ready`. */
 type Ready = { view: View; loading: Loading | null };
 

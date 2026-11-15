@@ -5,12 +5,12 @@ file and read it. It does not edit, and it never will.
 
 [![CI](https://github.com/Vibin-LLC-2025/ezmark/actions/workflows/ci.yml/badge.svg)](https://github.com/Vibin-LLC-2025/ezmark/actions/workflows/ci.yml)
 
-> **Status: milestone M0 (spike and skeleton), closing.** The run story, the
-> security harness, and CI on both platforms work, and a document renders the
-> way it does on GitHub. Syntax highlighting, the tuned typography and themes,
-> following links, and live reload arrive in M1 to M3, so this is not a daily
-> viewer yet. See the [plan](docs/CLONE-AND-RUN-PLAN.md) and the
-> [changelog](CHANGELOG.md).
+> **Status: milestone M1 (engine), in progress.** The run story, the security
+> harness, and CI on both platforms work. A document renders the way it does
+> on GitHub, with highlighted code and front matter, and the view reloads when
+> the file changes without losing your place. The tuned typography, themes,
+> and following links are M2, so this is not a daily viewer yet. See the
+> [plan](docs/CLONE-AND-RUN-PLAN.md) and the [changelog](CHANGELOG.md).
 
 ![ezmark on Windows 11](docs/media/m0-windows.png)
 
@@ -24,9 +24,10 @@ tools for it either edit, run scripts from the document, lose your place when
 the file changes, or render differently from GitHub. ezmark aims to be:
 
 - strictly read-only
-- faithful to GitHub's rendering: alerts, footnotes, task lists, anchors
+- faithful to GitHub's rendering: alerts, footnotes, task lists, anchors,
+  highlighted code, with the parser passing the CommonMark and GFM spec suites
 - safe with untrusted files: sanitized HTML, a strict CSP, no network
-- steady while you read: live reload that keeps your place (M3)
+- steady while you read: live reload that keeps your place
 - correct about relative links and images, however the file was opened
 - honest when it cannot show something: an image that may not load, a file
   that is not text, a render that is taking long, each says so in words
@@ -126,13 +127,26 @@ Report vulnerabilities privately: see [SECURITY.md](SECURITY.md).
   because without a `.git` folder the document's own folder is the limit.
 - **Links do nothing yet.** Clicking one is cancelled; following links to
   other files and opening web links in your browser are M2.
-- **Not yet**: syntax highlighting (M1), the tuned typography, themes beyond
-  the system light or dark default, outline, find (M2), and live reload (M3).
+- **Not yet**: the tuned typography, themes beyond the system light or dark
+  default, outline, and find (M2).
+- **Highlighting covers the common languages, not all of them.** The grammar
+  set has no TypeScript, TOML, Dockerfile, Kotlin, Swift, or PowerShell.
+  TypeScript and JSX are read as JavaScript, which gets comments, strings, and
+  keywords right and type annotations only roughly; the others show as plain
+  code. One document gets 256 KB of code highlighted; code beyond that, and
+  any block with a line over 4,096 bytes, is shown plain.
+- **Front matter is YAML between `---` lines only**, shown as a closed block
+  of its top-level keys. Nested values are shown as written, not interpreted.
+- **Live reload keeps your place by content.** If the block you were reading
+  is one of several identical ones, or was itself edited, the view lands on
+  the nearest block above it that is unique in both versions, which can be
+  some way up. It never lands on a different copy of an identical block.
 - **Deeply nested files show as plain text.** Nesting more than 512 levels
   deep (no real document does) costs the parser time that grows with the
   square of the depth, so such a file is shown unrendered, with a note.
 - **A slow render cannot be stopped yet**, only superseded by opening another
-  file. The window says "Still rendering" while it waits. A stop action is M3.
+  file. The window says "Still rendering" while it waits. A stop action, and
+  a large-file mode, are M3.
 - **The network lock is Windows-only.** On macOS, markup injected past the
   sanitizer (a preconnect hint, a frame) made WKWebView open two connections
   to a local test listener. A document cannot produce that markup, so this is

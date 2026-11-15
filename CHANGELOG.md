@@ -6,6 +6,110 @@ versioning). Release automation is v1.1 work.
 
 ## [Unreleased]
 
+### Added (M1: engine, first part, and live reload brought forward from M3)
+
+Started 2026-11-14. Live reload was planned for M3; it was built now, with
+the engine work it depends on (content keys for blocks).
+
+- **Syntax highlighting, inside the CSP.** syntect runs in Rust before the
+  sanitizer and emits classes, never inline styles, so `style-src 'self'`
+  stays as strict as it was. Each run of text gets at most one flat span with
+  one of 14 fixed classes (`hl-keyword`, `hl-string`, ...), and the sanitizer
+  keeps a class on a `<span>` only if it is one of those. `ui/highlight.css`
+  carries GitHub's light and dark colours as custom properties, so a theme
+  change needs no re-render. The pure-Rust regex engine is used, so a reader
+  still needs only Rust.
+- **Front matter.** A leading `---` block is shown as a closed "Front matter"
+  block with a table of its top-level keys, instead of being dropped.
+- **Parser conformance.** The CommonMark 0.31.2 spec (652 examples) and the
+  GFM spec (670 examples that are not marked disabled) are checked in under
+  `tests/spec/` and run against the parser with spec settings on every test
+  run. All pass. One GFM example has no expected HTML in the spec (the tag
+  filter, which here is the sanitizer's job); it is counted as the spec's own
+  runner counts it.
+- **Pipeline snapshots.** The same 1,322 inputs go through the full pipeline
+  and the output is saved under `tests/pipeline/`. Any change in output fails
+  the test until the snapshot is regenerated (`EZMARK_BLESS=1`) and the diff
+  reviewed. `tests/pipeline/README.md` lists every kind of deliberate
+  difference from the spec.
+- **Live reload.** The open file's folder is watched; saves are debounced
+  (75 ms of quiet, at most 500 ms); the file is read again and rendered only
+  if its bytes changed. The view replaces only the blocks that changed and
+  keeps the reader's place by content, under the plan's uniqueness rule. A
+  short "Updated" note shows after a reload, and a message stays up while the
+  file is moved or deleted.
+- **One render thread with a one-slot mailbox** replaces a thread per open,
+  as plan section 9 specifies: waiting requests coalesce, and a reload never
+  displaces an open.
+- `cargo run -p mdcore --example html -- file.md` prints the engine's HTML,
+  and `--example timing` the stage timings in `docs/measurements.md`.
+
+#### Fixed after review, 2026-11-15
+
+An independent review of this work before it was committed confirmed nine
+defects. All are fixed, each with a test.
+
+- Two opens handed to the render thread in the wrong order could leave the
+  newer one unrendered and "Still rendering" on screen for good. The mailbox
+  now keeps the later generation.
+- A link definition directly above a paragraph was hashed into that
+  paragraph's key, so two identical paragraphs had different keys that
+  swapped when the definition moved, and the reader could be sent to the
+  other copy. The key now covers the paragraph's own lines only.
+- A file an editor still held open when its change was noticed was never
+  read again. A failed read is now retried every 250 ms, up to 20 times.
+- A rename that changed only the case of the file name stopped reloads on
+  Windows.
+- Renaming or deleting the file's folder went unnoticed, because the folder's
+  watch goes with it. The watcher now also checks every 2 seconds that the
+  file is where it was, and watches the folder afresh when it returns.
+- A reload that finished after the file was deleted took the "moved or
+  deleted" message down. Only a view of another file, or the file's return,
+  does now.
+- The position hold after a reload outlived its document and could scroll the
+  next one. Every new view ends it.
+- The pipeline snapshots depended on what happened to exist in the temp
+  directory. They now run in a folder made for the run.
+- The end-to-end test could not tell a suppressed unchanged save from one
+  merged into the next save. It now waits for the unchanged check first.
+
+#### Deviations from the plan, and what is not done
+
+- **syntect's stock HTML writer was measured and replaced.** It nests a span
+  per grammar scope and spells every scope part into the class: 27 bytes of
+  HTML per byte of code (a 433 KB block became 11.5 MB). The flat writer
+  produces about 4.4 bytes per byte, and its fixed class list is a tighter
+  sanitizer rule than a class prefix would have been.
+- **Highlighting is budgeted by bytes of code, not by file size.** Plan
+  section 9 skips highlighting for files over 2 MB. Measured, the cost follows
+  the amount of code (about 370 KB a second), so one document gets 256 KB of
+  code highlighted wherever it sits, and a block with a line over 4,096 bytes
+  is left plain.
+- **Block keys travel as marker elements, not as `data-hash` attributes.** A
+  top-level block can come out of raw HTML that the parser never saw as one
+  element, so keys cannot be attached in Rust without a second HTML parser.
+  An empty `<ezmark-block key>` before each block goes through the sanitizer
+  with everything else, and the view attaches keys once the browser has
+  parsed the document.
+- **No vendored differ**, as section 17 allowed: unchanged blocks at the start
+  and end of the document stay in the page, and everything between is
+  replaced. Edits are local, so this covers the usual case in a few lines.
+- **Not done yet from M1:** image dimensions from file headers, link
+  resolution, the wider hostile corpus, and the adversarial performance
+  fixtures as a recorded CI step (their timings are in
+  `docs/measurements.md`, measured by hand).
+- **Not done yet from M3:** the stop action for a stuck render, cooperative
+  cancellation between stages, large-file mode, and the acceptance runs with
+  saves from VS Code, Vim, and Obsidian on real machines. The save patterns
+  those editors use are tested (write in place, truncate then write, rename
+  over), but by a test, not by the editors.
+- **The grammar set is syntect's default one**, which lacks TypeScript, TOML,
+  Dockerfile, Kotlin, Swift, and PowerShell. TypeScript and JSX fall back to
+  the JavaScript grammar. A larger set is a dependency decision (binary size,
+  first-build time, licences) that has not been made.
+- **`notify` is licensed CC0-1.0**, added to the allowed licences in
+  `deny.toml`.
+
 ### Added (M0: spike and skeleton)
 
 - Cargo workspace with `default-members = ["crates/app"]`, so

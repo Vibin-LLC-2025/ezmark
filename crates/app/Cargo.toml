@@ -32,6 +32,7 @@ tauri-plugin-single-instance.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 dunce.workspace = true
+notify.workspace = true
 
 # Native message boxes for the moments there is no window to say something in:
 # a failed start, and --help from a build that has no console.

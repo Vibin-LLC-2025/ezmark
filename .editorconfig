@@ -13,3 +13,9 @@ indent_size = 4
 
 [*.md]
 trim_trailing_whitespace = false
+
+# Spec files and saved pipeline output are compared byte for byte. Their
+# trailing spaces and tabs are part of the test.
+[tests/{spec,pipeline}/*.{txt,snap}]
+trim_trailing_whitespace = false
+indent_style = unset

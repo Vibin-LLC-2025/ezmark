@@ -14,7 +14,8 @@ never fetched.
 - [x] Relative images through the `ezasset` protocol
 - [x] Sanitized raw HTML, enforced CSP, ACL-checked IPC, a network lock
 - [x] Alerts, task lists, footnotes, and heading links[^1]
-- [ ] Syntax highlighting (M1), typography and themes (M2)
+- [x] Syntax highlighting, front matter, and live reload that keeps your place
+- [ ] Typography and themes (M2)
 
 | Piece | Where | Lines |
 |---|---|:-:|

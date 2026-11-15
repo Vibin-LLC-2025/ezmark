@@ -210,15 +210,23 @@ impl Harness {
 
     /// Wait for the next `rendered` event.
     fn wait_rendered(&self) -> Value {
+        self.wait_event(|event| event["type"] == "rendered")
+    }
+
+    /// Wait for the next event that `wanted` accepts, passing over others.
+    fn wait_event(&self, wanted: impl Fn(&Value) -> bool) -> Value {
         let deadline = Instant::now() + TIMEOUT;
         loop {
             let line = self.next_line(deadline);
             if let Some(json) = line.strip_prefix(EVENT_PREFIX) {
-                return serde_json::from_str(json).expect("event JSON");
+                let event: Value = serde_json::from_str(json).expect("event JSON");
+                if wanted(&event) {
+                    return event;
+                }
             }
             assert!(
                 !line.starts_with(RESULT_PREFIX),
-                "finished before rendering: {line}"
+                "finished before the awaited event: {line}"
             );
         }
     }
@@ -859,6 +867,68 @@ fn second_launch_is_forwarded_to_the_running_instance() {
         path.contains("second dir"),
         "cwd of the second launch not used: {path}"
     );
+}
+
+/// Live reload through the real app, watcher to webview: a save that changes
+/// nothing renders nothing, and a save by write-then-rename, the way editors
+/// do it, replaces the changed block in place.
+#[test]
+fn a_saved_change_reloads_the_open_document() {
+    let dir = Scratch::new("reload");
+    let file = dir.join("live.md");
+    let first = "---\ntitle: Live\n---\n\n# Live\n\nFirst version.\n\n```rust\nfn main() {}\n```\n";
+    std::fs::write(&file, first).unwrap();
+
+    let renders = [("EZMARK_HARNESS_RENDERS", "2".to_owned())];
+    let running = Harness::spawn("live-reload", &[file.clone().into()], &dir, &renders);
+    let opened = running.wait_rendered();
+    assert_eq!(opened["data"]["kind"], "document", "{opened:#}");
+    assert_eq!(opened["data"]["reloaded"], false, "{opened:#}");
+    let html = opened["data"]["dom"]["html"].as_str().unwrap();
+    assert!(html.contains("First version."), "{html}");
+    // The M1 engine features, seen in the real page.
+    assert!(
+        html.contains("<span class=\"hl-keyword\">fn </span>"),
+        "code is not highlighted: {html}"
+    );
+    assert!(
+        html.contains("<details class=\"front-matter\">"),
+        "front matter is not shown: {html}"
+    );
+    assert!(
+        !html.contains("ezmark-block"),
+        "a block marker reached the page: {html}"
+    );
+
+    // Saved without a change. Wait until the app has looked at the file and
+    // found the same bytes, so that this save and the next one cannot be
+    // taken as one: a check that rendered nothing is an event of its own.
+    // If it had rendered, that would be the second render, and the run would
+    // end still showing the first version.
+    std::fs::write(&file, first).unwrap();
+    running.wait_event(|event| event["type"] == "reload" && event["outcome"] == "unchanged");
+    let temporary = dir.join(".live.md.tmp");
+    std::fs::write(
+        &temporary,
+        first.replace("First version.", "Second version."),
+    )
+    .unwrap();
+    std::fs::rename(&temporary, &file).unwrap();
+
+    let result = running.finish();
+    assert_common(&result);
+    assert_eq!(csp_reports(&result), &Vec::<Value>::new(), "{result:#}");
+    let reloaded = last_render(&result);
+    assert_eq!(reloaded["reloaded"], true, "{result:#}");
+    let html = reloaded["dom"]["html"].as_str().unwrap();
+    assert!(html.contains("Second version."), "{html}");
+    assert!(!html.contains("First version."), "{html}");
+    assert_eq!(
+        result["page"]["renders"].as_array().map(Vec::len),
+        Some(2),
+        "the unchanged save rendered: {result:#}"
+    );
+    assert_eq!(result["windowTitle"], "live.md - ezmark", "{result:#}");
 }
 
 /// `--help`, `--version`, and arguments that make no sense are answered on
