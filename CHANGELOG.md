@@ -6,6 +6,15 @@ versioning). Release automation is v1.1 work.
 
 ## [Unreleased]
 
+### Security, 2026-11-24
+
+- **url 2.5.8 to 2.5.9 and cookie 0.18.2 to 0.18.3** (lockfile only), for
+  RUSTSEC-2026-0592 (stack overflow in `Url::origin()` on nested `blob:`
+  URLs) and RUSTSEC-2026-0594 (private cookie nonces can repeat after
+  `fork()`). url arrives through ammonia and Tauri, cookie through Tauri.
+  Upgraded rather than ignored in `deny.toml`; `cargo deny` failed on both,
+  which blocked every pull request.
+
 ### Added (M1: engine, first part, and live reload brought forward from M3)
 
 Started 2026-11-14. Live reload was planned for M3; it was built now, with
