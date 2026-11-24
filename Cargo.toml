@@ -14,7 +14,7 @@ publish = false
 
 [workspace.dependencies]
 mdcore = { path = "crates/mdcore" }
-comrak = { version = "0.59.0", default-features = false }
+comrak = { version = "1.2.0", default-features = false }
 ammonia = "4.2.5"
 # Pure-Rust regex engine: no C library to build, so a reader still needs only Rust.
 syntect = { version = "5.3.0", default-features = false, features = ["default-syntaxes", "regex-fancy"] }
