@@ -21,6 +21,9 @@ unmaintained = "workspace"
 allow = [
     "MIT",
     "Apache-2.0",
+    # xxhash-rust, used by notify 9 (the file watcher): the Boost licence,
+    # permissive and OSI-approved. Allowed 2026-11-24.
+    "BSL-1.0",
     "BSD-2-Clause",
     "BSD-3-Clause",
     # notify, the file watcher behind live reload: a public-domain dedication.

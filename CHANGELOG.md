@@ -31,6 +31,10 @@ versioning). Release automation is v1.1 work.
   - Empty headings get unique anchors. The first empty heading used to get
     `id="user-content-"` and a dead `href="#"`; now each is numbered.
 - **tauri 2.12.5 to 2.12.7, tauri-build 2.7.4 to 2.7.6** (patch releases).
+- **notify 8.2 to 9.0** (the file watcher behind live reload; Dependabot
+  #8). No code changes were needed: ezmark uses none of the removed or
+  changed APIs. It brings in xxhash-rust, so BSL-1.0 (the Boost licence,
+  permissive) is added to the licences `deny.toml` allows.
 
 ### Added (M1: engine, first part, and live reload brought forward from M3)
 
