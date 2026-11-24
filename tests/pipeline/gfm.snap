@@ -462,11 +462,11 @@ Bar foo
 ### ###
 -------- pipeline output
 <ezmark-block key="07c90d07b491b5e3"></ezmark-block>
-<h2 id="user-content-"><a href="#" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h2>
+<h2 id="user-content--1"><a href="#user-content--1" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h2>
 <ezmark-block key="af639e4c86018332"></ezmark-block>
-<h1 id="user-content--1"><a href="#user-content--1" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h1>
+<h1 id="user-content--2"><a href="#user-content--2" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h1>
 <ezmark-block key="6bd501ff38a9fef7"></ezmark-block>
-<h3 id="user-content--2"><a href="#user-content--2" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h3>
+<h3 id="user-content--3"><a href="#user-content--3" aria-label="Link to heading ''" class="anchor" rel="noopener noreferrer"></a></h3>
 
 ======== example 50: Setext headings (differs from the spec)
 Foo *bar*
@@ -1967,7 +1967,7 @@ bar
 ===
 [foo]
 -------- pipeline output
-<ezmark-block key="872ba877d57e6d2d"></ezmark-block>
+<ezmark-block key="99e0db3628b38239"></ezmark-block>
 <h1 id="user-content-bar">bar<a href="#user-content-bar" aria-label="Link to heading 'bar'" class="anchor" rel="noopener noreferrer"></a></h1>
 <ezmark-block key="ddea1cd076345255"></ezmark-block>
 <p><a href="/url" rel="noopener noreferrer">foo</a></p>
@@ -5112,7 +5112,7 @@ bar>)
 [link](   /uri
   "title"  )
 -------- pipeline output
-<ezmark-block key="d3597df2f1309f88"></ezmark-block>
+<ezmark-block key="3cae8d959f44bfcb"></ezmark-block>
 <p><a href="/uri" title="title" rel="noopener noreferrer">link</a></p>
 
 ======== example 519: Links (same as the spec)

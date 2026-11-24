@@ -15,6 +15,23 @@ versioning). Release automation is v1.1 work.
   Upgraded rather than ignored in `deny.toml`; `cargo deny` failed on both,
   which blocked every pull request.
 
+### Changed, 2026-11-24: comrak 0.59 to 1.2, Tauri 2.12.7
+
+- **comrak 1.x** (the bump Dependabot proposed in #6, lockfile at 1.2.0).
+  The highlighter adapter takes comrak's new `SyntaxHighlightMeta` and
+  sorted attribute map; its output is unchanged. Both spec suites still
+  pass unchanged.
+- **Pipeline snapshot changes, all fixes:**
+  - Block keys now cover exactly a block's own lines. Under 0.59 a
+    multi-line paragraph was keyed on its last line only, and a setext
+    heading below a link definition had the definition in its key (spec
+    examples 215 and 510). New test:
+    `a_key_covers_all_of_a_blocks_own_lines_and_nothing_else`, which fails
+    on 0.59.
+  - Empty headings get unique anchors. The first empty heading used to get
+    `id="user-content-"` and a dead `href="#"`; now each is numbered.
+- **tauri 2.12.5 to 2.12.7, tauri-build 2.7.4 to 2.7.6** (patch releases).
+
 ### Added (M1: engine, first part, and live reload brought forward from M3)
 
 Started 2026-11-14. Live reload was planned for M3; it was built now, with

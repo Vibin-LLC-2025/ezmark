@@ -81,7 +81,8 @@ pub fn mark<'a>(arena: &'a Arena<'a>, root: &'a AstNode<'a>, source: &str) {
 /// trade places if the definition is moved from above one to above the other:
 /// the reader would be sent to the other copy.
 ///
-/// The parser (comrak 0.59) does not say where the text starts: it numbers
+/// The parser (comrak, written against 0.59 and still passing the tests below
+/// on 1.2) does not say where the text starts: it numbers
 /// the lines of a paragraph's inline nodes from the paragraph's first line,
 /// definitions included, so they come out too early by however many lines
 /// the definitions took. What those numbers do give is how many lines the
@@ -107,10 +108,9 @@ fn first_line<'a>(block: &'a AstNode<'a>, ast: &Ast) -> usize {
 }
 
 fn html_block<'a>(arena: &'a Arena<'a>, literal: String) -> &'a AstNode<'a> {
-    let value = NodeValue::HtmlBlock(NodeHtmlBlock {
-        block_type: 6,
-        literal,
-    });
+    let mut block = NodeHtmlBlock::new(literal);
+    block.block_type = 6;
+    let value = NodeValue::HtmlBlock(block);
     arena.alloc(Ast::new(value, LineColumn { line: 0, column: 0 }).into())
 }
 
@@ -237,6 +237,25 @@ mod tests {
         // Several definitions, one with a title on its own line.
         let several = keys("[a]: /a\n[b]: /b\n  \"title\"\nCopy [x].\n\n[x]: /u\n");
         assert_eq!(several, [above_first[1].clone()]);
+    }
+
+    /// Found on 2026-11-24 when comrak 1.x changed the pipeline snapshots:
+    /// under 0.59 a two-line paragraph was keyed on its last line only, and
+    /// a setext heading below a definition had the definition in its key.
+    #[test]
+    fn a_key_covers_all_of_a_blocks_own_lines_and_nothing_else() {
+        let paragraph = "First line\nsecond line.\n";
+        assert_eq!(
+            keys(paragraph),
+            [format!(
+                "{:016x}",
+                content_hash(paragraph.trim_end().as_bytes())
+            )]
+        );
+        assert_eq!(keys(&format!("[x]: /u\n{paragraph}")), keys(paragraph));
+
+        let heading = "Title\n===\n";
+        assert_eq!(keys(&format!("[x]: /u\n{heading}")), keys(heading));
     }
 
     #[test]

@@ -25,12 +25,12 @@
 //! as plain code.
 
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use comrak::adapters::SyntaxHighlighterAdapter;
+use comrak::adapters::{SyntaxHighlightMeta, SyntaxHighlighterAdapter};
 use syntect::parsing::{ParseState, Scope, ScopeStack, SyntaxReference, SyntaxSet};
 use syntect::util::LinesWithEndings;
 
@@ -271,19 +271,21 @@ impl SyntaxHighlighterAdapter for Highlighter {
     fn write_highlighted(
         &self,
         output: &mut dyn fmt::Write,
-        lang: Option<&str>,
-        code: &str,
+        highlight: &SyntaxHighlightMeta<'_>,
     ) -> fmt::Result {
-        match lang.and_then(|lang| self.highlight(lang, code)) {
+        // comrak 1.x passes an empty `lang` for a fence with no info string.
+        let lang = Some(highlight.lang).filter(|lang| !lang.is_empty());
+        match lang.and_then(|lang| self.highlight(lang, highlight.code)) {
             Some(html) => output.write_str(&html),
-            None => write_escaped(output, code),
+            None => write_escaped(output, highlight.code),
         }
     }
 
     fn write_pre_tag(
         &self,
         output: &mut dyn fmt::Write,
-        attributes: HashMap<&'static str, Cow<'_, str>>,
+        _highlight: &SyntaxHighlightMeta<'_>,
+        attributes: BTreeMap<&str, Cow<'_, str>>,
     ) -> fmt::Result {
         write_tag(output, "pre", attributes)
     }
@@ -291,21 +293,20 @@ impl SyntaxHighlighterAdapter for Highlighter {
     fn write_code_tag(
         &self,
         output: &mut dyn fmt::Write,
-        attributes: HashMap<&'static str, Cow<'_, str>>,
+        _highlight: &SyntaxHighlightMeta<'_>,
+        attributes: BTreeMap<&str, Cow<'_, str>>,
     ) -> fmt::Result {
         write_tag(output, "code", attributes)
     }
 }
 
-/// An opening tag, with its attributes in a fixed order so that the same
-/// document always renders to the same bytes.
+/// An opening tag, with its attributes in a fixed order (the map is sorted
+/// by name) so that the same document always renders to the same bytes.
 fn write_tag(
     output: &mut dyn fmt::Write,
     tag: &str,
-    attributes: HashMap<&'static str, Cow<'_, str>>,
+    attributes: BTreeMap<&str, Cow<'_, str>>,
 ) -> fmt::Result {
-    let mut attributes: Vec<_> = attributes.into_iter().collect();
-    attributes.sort();
     write!(output, "<{tag}")?;
     for (name, value) in attributes {
         write!(output, " {name}=\"")?;
@@ -343,7 +344,7 @@ mod tests {
     fn highlighted(highlighter: &Highlighter, language: &str, code: &str) -> String {
         let mut out = String::new();
         highlighter
-            .write_highlighted(&mut out, Some(language), code)
+            .write_highlighted(&mut out, &SyntaxHighlightMeta::new(language, "", code))
             .unwrap();
         out
     }
@@ -536,12 +537,12 @@ mod tests {
     #[test]
     fn tags_are_written_with_escaped_attributes_in_a_fixed_order() {
         let mut out = String::new();
-        let attributes = HashMap::from([
+        let attributes = BTreeMap::from([
             ("data-b", Cow::Borrowed("2")),
             ("class", Cow::Borrowed("language-\"x")),
         ]);
         Highlighter::new()
-            .write_code_tag(&mut out, attributes)
+            .write_code_tag(&mut out, &SyntaxHighlightMeta::new("x", "", ""), attributes)
             .unwrap();
         assert_eq!(out, "<code class=\"language-&quot;x\" data-b=\"2\">");
     }
